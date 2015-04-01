@@ -17,8 +17,7 @@ public class StatsCalc {
 	 */
 	public static void main(String[] args) {
 
-		Log log = new Log();
-		log.addLine("\t\t\t*****Starting CMS Stat Calculation*****\n");
+		Log log = new Log(Log.type.stat);
 		
 		File out_dir = new File(args[0]);
 		if(!out_dir.exists() && !out_dir.isDirectory()) {
