@@ -29,6 +29,10 @@ public class EnviSetup {
 			SetupDriver dv = new SetupDriver(args, log);
 			dv.runSetup();
 			
+			System.out.println("Setup Finished");
+			log.addLine("Your environment has been successfully set up. Go to api "
+					+ "for information about how to run stats analysis");
+			
 		} catch (Exception e) {
 			
 			System.out.println("CMS Died Prematurely." 
