@@ -112,9 +112,9 @@ public class SetupDriver {
 				Window txin_w = txin_wins.get(i);
 				
 				//file identifier string
-				String tp_file_id = String.format("%s_win%d_chr%d_indx%d-%d.bin", 
+				String tp_file_id = String.format("%s_win%d_chr%d_ind%d-%d.bin", 
 						t_pop, i, chr, tp_w.getStIndex(), tp_w.getEndIndex());
-				String txin_file_id = String.format("%sx%s_win%d_chr%d_indx%d-%d.bin", 
+				String txin_file_id = String.format("%sx%s_win%d_chr%d_ind%d-%d.bin", 
 						t_pop, x_pop, i, chr, tp_w.getStIndex(), tp_w.getEndIndex());
 				
 				//add job info
