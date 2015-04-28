@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.PrintWriter;
 import java.util.List;
 
 import calc.*;
@@ -22,16 +23,18 @@ public class StatsCalc {
 	 * @param args2		window number
 	 */
 	public static void main(String[] args) {
-
-		Log log = new Log(Log.type.stat);
 		
 		File out_dir = new File(args[0]);
 		if(!out_dir.exists() && !out_dir.isDirectory()) {
 			//TODO: throw some error
+			System.out.println("ERROR4!!!");
 		}
 		
 		int chr = Integer.parseInt(args[1]);
 		int win_num = Integer.parseInt(args[2]);
+		//TODO: catch cast exception
+		
+		Log log = new Log(Log.type.stat, win_num);
 		
 		StatsCalc sc = new StatsCalc(out_dir, chr, win_num, log);
 		sc.runStats();
@@ -48,6 +51,8 @@ public class StatsCalc {
 	private File envi_dir;
 	private File win_dir;
 	
+	private Window tp_win;
+	
 	private iHS i;
 	private iHH h;
 	private XPEHH x;
@@ -58,6 +63,8 @@ public class StatsCalc {
 	
 	public StatsCalc(File out_dir, int chr, int win_num, Log log) {
 		
+		tp_win = null;
+		
 		this.chr = chr;
 		this.win_num = win_num;
 		this.out_dir = out_dir;
@@ -67,30 +74,55 @@ public class StatsCalc {
 	public void runStats() {
 		
 		setupFiles();
+		
+		logParameters();
+		
 		createCalculators();
+		
 		doCalculations();
 		
-		//run the tests
-		//write the stats output file
 		writeOutput();
 	}
 	
 	private void writeOutput() {
 		
-		//TODO:
-		i.getStats();
-		i.getSNPs();
-		h.getStats();
-		h.getSNPs();
-		x.getStats();
-		x.getSNPs();
-		d.getStats();
-		d.getSNPs();
-		f.getStats();
-		f.getSNPs();
+		log.add("\nWriting data...");
+		try {
+			
+			File win_stats = new File(out_dir.getAbsoluteFile() + File.separator 
+					+ "win" + win_num + "_" + "chr" + chr + "_" + "ind" 
+					+ tp_win.getStIndex() + "-" + tp_win.getEndIndex() + ".tsv");
+			win_stats.createNewFile();
+			
+			WindowStats ws = new WindowStats(tp_win.getStPos(), tp_win.getEndPos());
+			
+			ws.setIHS(i.getStats(), i.getSNPs());
+			ws.setIHH(h.getStats(), h.getSNPs());
+			ws.setXPEHH(x.getStats(), x.getSNPs());
+			ws.setDAF(d.getStats(), d.getSNPs());
+			ws.setFst(f.getStats(), f.getSNPs());
+			
+			PrintWriter pw = new PrintWriter(win_stats);
+			pw.print("snp_id\tposition\tiHS\tXPEHH\tiHH\tDAF\tFst\n");
+			pw.print(ws);
+			pw.close();
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		log.addLine("done");
 	}
 	
 	private void doCalculations() {
+		
+		log.addLine("Starting analysis on window #" + win_num);
+		log.addLine("This analysis will cover positions " + tp_win.getStPos() 
+				+ " to " + tp_win.getEndPos());
 		
 		Object lock = new Object();
 		
@@ -156,7 +188,7 @@ public class StatsCalc {
 	@SuppressWarnings("unchecked")
 	private void createCalculators() {
 		
-		try { 
+		try {
 			String path = "";
 			
 			path = getEnviFileName("target_pop_wins.bin");
@@ -190,7 +222,7 @@ public class StatsCalc {
 			GeneticMap gm = (GeneticMap) getObject(path);
 			
 			path = getTargetWindowFileName();
-			Window tp_win = (Window) getObject(path);
+			tp_win = (Window) getObject(path);
 			
 			path = getTargetXCrossWindowFileName();
 			Window txin_win = (Window) getObject(path);
@@ -222,6 +254,7 @@ public class StatsCalc {
 		File file = new File(path);
 		if(!file.exists()) {
 			//TODO: throw some error
+			System.out.println("ERROR3!!!");
 		}
 		
 		ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)));
@@ -237,7 +270,7 @@ public class StatsCalc {
 			if(file_name.contains("chr" + chr)
 					&& file_name.contains("win" + win_num)
 					&& file_name.contains("x"))
-				return file_name;
+				return win_dir.getAbsolutePath() + File.separator + file_name;
 		}
 		
 		//TODO: change to make better??? be specific about what file
@@ -253,7 +286,7 @@ public class StatsCalc {
 			if(file_name.contains("chr" + chr)
 					&& file_name.contains("win" + win_num)
 					&& !file_name.contains("x"))
-				return file_name;
+				return win_dir.getAbsolutePath() + File.separator + file_name;
 		}
 		
 		//TODO: change to make better??? be specific about what file
@@ -269,22 +302,29 @@ public class StatsCalc {
 		envi_dir = new File(out_dir.getAbsoluteFile() + File.separator + "envi_files" + File.separator + "envi_var");
 		if(!envi_dir.exists() && !envi_dir.isDirectory()) {
 			//TODO: throw some error
+			System.out.println("ERROR1!!!");
 		}
 		
 		win_dir = new File(out_dir.getAbsoluteFile() + File.separator + "envi_files" + File.separator + "all_wins");
 		if(!win_dir.exists() && !win_dir.isDirectory()) {
 			//TODO: throw some error
+			System.out.println("ERROR2!!!");
 		}
 		
 		out_dir = new File(out_dir.getAbsolutePath() + File.separator + "stats_files");
 		if(!out_dir.exists())
 			out_dir.mkdirs();
-		
-		
 	}
 	
-	
-
+	private void logParameters() {
+		
+		log.addLine("Working Parameters:");
+		log.addLine("Win ID:\t\t" + win_num);
+		log.addLine("Chr:\t\t" + chr);
+		log.addLine("Envi Dir:\t" + envi_dir.getAbsolutePath());
+		log.addLine("Win Dir:\t" + win_dir.getAbsolutePath());
+		log.addLine("Out Dir:\t" + out_dir.getAbsolutePath() + "\n");
+	}
 }
 
 class StatsThread extends Thread {

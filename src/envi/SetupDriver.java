@@ -276,6 +276,7 @@ public class SetupDriver {
 		anc_types = ap.parseAncestralTypes();
 	}
 	
+	//TODO: **************THIS STILL NEEDS TO BE DONE***************************
 	private void runVcfParcers(int chr) throws Exception {
 		
 		//========Find Path Variables========
@@ -381,20 +382,14 @@ public class SetupDriver {
 		}
 		log.add(".");
 		
-		out_dir = new File(args[2]);
-		if(!out_dir.isDirectory()) {
-			String msg = "Error: Output directory path does not exist";
-			throw new IllegalInputException(log, msg);
+		File temp_out_dir = new File(args[2] + File.separator + "out" + File.separator);
+		int n = 1;
+		while(temp_out_dir.exists()) {
+			temp_out_dir = new File(args[2] + File.separator + "out" + n + File.separator);
+			n++;
 		}
-		out_dir = new File(args[2] + File.separator + "envi_files" + File.separator);
-		if(out_dir.exists()) {
-			int num = 1;
-			while (out_dir.exists()) {
-				out_dir = new File(args[2] + File.separator + "envi_files" + num + File.separator);
-				num++;
-			}
-			System.out.println(out_dir.getAbsolutePath());
-		}
+		temp_out_dir.mkdir();
+		out_dir = new File(temp_out_dir.getAbsolutePath() + File.separator + "envi_files" + File.separator);
 		out_dir.mkdirs();
 		log.add(".");
 		

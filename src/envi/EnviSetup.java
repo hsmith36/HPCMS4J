@@ -53,14 +53,14 @@ public class EnviSetup {
 		}
 	
 		log.addLine("Working Parameters");
-		log.addLine("Data Dir:\t" + args[0]);
-		log.addLine("Map File:\t" + args[1]);
+		log.addLine("Data Dir:\t\t" + args[0]);
+		log.addLine("Map File:\t\t" + args[1]);
 		log.addLine("Envi Output Dir:\t" + args[2]);
-		log.addLine("Target Pop:\t" + args[3]);
-		log.addLine("Cross Pop:\t" + args[4]);
-		log.addLine("Outgroup Pop:\t" + args[5]);
-		log.addLine("Chr Range:\t" + args[6]);
-		log.addLine("Window Size:\t" + args[7] + "Mb");
+		log.addLine("Target Pop:\t\t" + args[3]);
+		log.addLine("Cross Pop:\t\t" + args[4]);
+		log.addLine("Outgroup Pop:\t\t" + args[5]);
+		log.addLine("Chr Range:\t\t" + args[6]);
+		log.addLine("Window Size:\t\t" + args[7] + "Mb");
 		
 		return args;
 	}
