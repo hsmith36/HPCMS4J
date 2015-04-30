@@ -3,7 +3,6 @@ package stats;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintWriter;
@@ -26,20 +25,38 @@ public class StatsCalc {
 		
 		File out_dir = new File(args[0]);
 		if(!out_dir.exists() && !out_dir.isDirectory()) {
-			//TODO: throw some error
-			System.out.println("ERROR4!!!");
+			
+			Log log = new Log(Log.type.stat);
+			log.addLine("ERROR: Parameter for out file directory invalid");
+			log.addLine("\t*Go to api for more information");
+			log.addLine("\t*You will need to redo this entire step--all new data is invalid");
+			log.close();
+			
+			System.exit(0);
 		}
 		
-		int chr = Integer.parseInt(args[1]);
-		int win_num = Integer.parseInt(args[2]);
-		//TODO: catch cast exception
-		
-		Log log = new Log(Log.type.stat, win_num);
-		
-		StatsCalc sc = new StatsCalc(out_dir, chr, win_num, log);
-		sc.runStats();
-		
-		log.addLine("Run Complete!");
+		try {
+			
+			int chr = Integer.parseInt(args[1]);
+			int win_num = Integer.parseInt(args[2]);
+			
+			Log log = new Log(Log.type.stat, out_dir.getName());
+			
+			StatsCalc sc = new StatsCalc(out_dir, chr, win_num, log);
+			sc.runStats();
+			
+			log.close();
+			
+		} catch(NumberFormatException e) {
+			
+			Log log = new Log(Log.type.stat);
+			log.addLine("ERROR: Parameters for chr and/or window number invalid");
+			log.addLine("\t*Go to api for more information");
+			log.addLine("\t*You will need to redo this entire step--all new data is invalid");
+			log.close();
+			
+			System.exit(0);
+		}
 	}
 	
 	private static int WAIT_TIME = 50;
@@ -75,8 +92,6 @@ public class StatsCalc {
 		
 		setupFiles();
 		
-		logParameters();
-		
 		createCalculators();
 		
 		doCalculations();
@@ -86,7 +101,6 @@ public class StatsCalc {
 	
 	private void writeOutput() {
 		
-		log.add("\nWriting data...");
 		try {
 			
 			File win_stats = new File(out_dir.getAbsoluteFile() + File.separator 
@@ -107,23 +121,14 @@ public class StatsCalc {
 			pw.print(ws);
 			pw.close();
 			
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.addLine(win_num + "\tWriteFileError\tCould not create/write the output file for this window");
+			System.exit(0);
 		}
-		
-		log.addLine("done");
 	}
 	
 	private void doCalculations() {
-		
-		log.addLine("Starting analysis on window #" + win_num);
-		log.addLine("This analysis will cover positions " + tp_win.getStPos() 
-				+ " to " + tp_win.getEndPos());
-		
+			
 		Object lock = new Object();
 		
 		try {
@@ -156,15 +161,10 @@ public class StatsCalc {
 			d = (DAF) d_thrd.getTest();
 			f = (Fst) f_thrd.getTest();
 		
-		} catch (InterruptedException e) { //TODO: throw new threading error
-			e.printStackTrace();
+		} catch (InterruptedException e) { 
+			log.addLine(win_num + "\tThreadingError\tThreading for this process did not complete");
+			System.exit(0);
 		}
-		
-		i.logRunStats();
-		h.logRunStats();
-		x.logRunStats();
-		d.logRunStats();
-		f.logRunStats();
 	}
 	
 	private void synchronize(StatsThread i_thrd, 
@@ -227,41 +227,37 @@ public class StatsCalc {
 			path = getTargetXCrossWindowFileName();
 			Window txin_win = (Window) getObject(path);
 			
-			i = new iHS(log, tp_win, tp_indv, anc_types, tp_wins, gm);
-			h = new iHH(log, tp_win, tp_indv, anc_types, tp_wins, gm);
-			x = new XPEHH(log, txin_win, txin_wins, tp_inx_indv, xp_int_indv, gm);
-			d = new DAF(log, tp_win, tp_indv, xoin_wins, xp_ino_indv, op_inx_indv, anc_types);
-			f = new Fst(log, txin_win, tp_inx_indv, xp_int_indv, op_inx_indv);
+			i = new iHS(tp_win, tp_indv, anc_types, tp_wins, gm);
+			h = new iHH(tp_win, tp_indv, anc_types, tp_wins, gm);
+			x = new XPEHH(txin_win, txin_wins, tp_inx_indv, xp_int_indv, gm);
+			d = new DAF(tp_win, tp_indv, xoin_wins, xp_ino_indv, op_inx_indv, anc_types);
+			f = new Fst(txin_win, tp_inx_indv, xp_int_indv, op_inx_indv);
 			
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.addLine(win_num + "\tReadFileError\tCould not find the correct file for proper loading of envi; check chr num and api");
+			System.exit(0);
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.addLine(win_num + "\tClassNotFoundError\tCould create the correct object instance while loading of envi");
+			System.exit(0);
 		} catch (ClassCastException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.addLine(win_num + "\tCastingError\tObject casting invalid while loading envi");
+			System.exit(0);
 		}
 	}
 	
 	@SuppressWarnings("resource")
-	private Object getObject(String path) throws FileNotFoundException, IOException, ClassNotFoundException {
+	private Object getObject(String path) throws IOException, ClassNotFoundException {
 		
 		File file = new File(path);
 		if(!file.exists()) {
-			//TODO: throw some error
-			System.out.println("ERROR3!!!");
+			throw new IOException();
 		}
 		
 		ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)));
 		return ois.readObject();
 	}
 	
-	private String getTargetXCrossWindowFileName() throws FileNotFoundException {
+	private String getTargetXCrossWindowFileName() throws IOException {
 		
 		String[] all_files = win_dir.list();
 		for(int i = 0; i < all_files.length; i++) {
@@ -273,11 +269,10 @@ public class StatsCalc {
 				return win_dir.getAbsolutePath() + File.separator + file_name;
 		}
 		
-		//TODO: change to make better??? be specific about what file
-		throw new FileNotFoundException();
+		throw new IOException();
 	}
 	
-	private String getTargetWindowFileName() throws FileNotFoundException {
+	private String getTargetWindowFileName() throws IOException {
 		
 		String[] all_files = win_dir.list();
 		for(int i = 0; i < all_files.length; i++) {
@@ -289,8 +284,7 @@ public class StatsCalc {
 				return win_dir.getAbsolutePath() + File.separator + file_name;
 		}
 		
-		//TODO: change to make better??? be specific about what file
-		throw new FileNotFoundException();
+		throw new IOException();
 	}
 	
 	private String getEnviFileName(String name) {
@@ -301,29 +295,19 @@ public class StatsCalc {
 		
 		envi_dir = new File(out_dir.getAbsoluteFile() + File.separator + "envi_files" + File.separator + "envi_var");
 		if(!envi_dir.exists() && !envi_dir.isDirectory()) {
-			//TODO: throw some error
-			System.out.println("ERROR1!!!");
+			log.addLine(win_num + "\tEnviDirError\tCould not find the evironment directory; check api for path names");
+			System.exit(0);
 		}
 		
 		win_dir = new File(out_dir.getAbsoluteFile() + File.separator + "envi_files" + File.separator + "all_wins");
 		if(!win_dir.exists() && !win_dir.isDirectory()) {
-			//TODO: throw some error
-			System.out.println("ERROR2!!!");
+			log.addLine(win_num + "\tWindowDirError\tCould not find the windows directory; check api for path names");
+			System.exit(0);
 		}
 		
 		out_dir = new File(out_dir.getAbsolutePath() + File.separator + "stats_files");
 		if(!out_dir.exists())
 			out_dir.mkdirs();
-	}
-	
-	private void logParameters() {
-		
-		log.addLine("Working Parameters:");
-		log.addLine("Win ID:\t\t" + win_num);
-		log.addLine("Chr:\t\t" + chr);
-		log.addLine("Envi Dir:\t" + envi_dir.getAbsolutePath());
-		log.addLine("Win Dir:\t" + win_dir.getAbsolutePath());
-		log.addLine("Out Dir:\t" + out_dir.getAbsolutePath() + "\n");
 	}
 }
 
@@ -334,7 +318,7 @@ class StatsThread extends Thread {
 	private Thread thrd;
 	private HaplotypeTests tst;
 	
-	volatile private boolean finished;//volatile says that some other thread could change this value
+	volatile private boolean finished; //volatile says that some other thread could change this value
 	
 	StatsThread(HaplotypeTests tst, Object lock) {
 		this.tst = tst;
