@@ -103,9 +103,12 @@ public class StatsCalc {
 		
 		try {
 			
+//			File win_stats = new File(out_dir.getAbsoluteFile() + File.separator 
+//					+ "win" + win_num + "_" + "chr" + chr + "_" + "ind" 
+//					+ tp_win.getStIndex() + "-" + tp_win.getEndIndex() + ".tsv");
 			File win_stats = new File(out_dir.getAbsoluteFile() + File.separator 
-					+ "win" + win_num + "_" + "chr" + chr + "_" + "ind" 
-					+ tp_win.getStIndex() + "-" + tp_win.getEndIndex() + ".tsv");
+					+ "win" + win_num + "_" + "chr" + chr + "_s" 
+					+ tp_win.getStPos() + "-e" + tp_win.getEndPos() + ".tsv");
 			win_stats.createNewFile();
 			
 			WindowStats ws = new WindowStats(tp_win.getStPos(), tp_win.getEndPos());
@@ -264,7 +267,7 @@ public class StatsCalc {
 			
 			String file_name = all_files[i];
 			if(file_name.contains("chr" + chr)
-					&& file_name.contains("win" + win_num)
+					&& file_name.contains("win" + win_num + "_")
 					&& file_name.contains("x"))
 				return win_dir.getAbsolutePath() + File.separator + file_name;
 		}

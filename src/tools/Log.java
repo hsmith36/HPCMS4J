@@ -7,11 +7,12 @@ import java.io.PrintWriter;
 
 public class Log {
 	
-	public static enum type {envi, stat, analysis};
+	public static enum type {envi, stat, analysis, combine};
 	
 	private static String ENVI_ST = "//Hyper-parallelized CMS environment setup version 1.0\n";
 	private static String STAT_ST = "//Hyper-parallelized CMS multi-threaded statistical analysis version 1.0\n";
 	private static String ANAL_ST = "//Hyper-parallelized CMS synthesis and calculation\n";
+	private static String COMB_ST = "//Hyper-parallelized CMS raw score printout\n";
 	private static String DEF_ST = "//CMS version 1.0\n";
 	private static String BEGIN1 = "//Log created to produce compilation messages and to aid in "
 					+ "debugging and configuration\n";
@@ -60,6 +61,12 @@ public class Log {
 				log_file = createLogFile("Analysis_Log", true);
 				wr = new PrintWriter(log_file);
 				add(ANAL_ST);
+				
+			} else if(type == Log.type.combine) {
+				
+				log_file = createLogFile("Combine_Log", true);
+				wr = new PrintWriter(log_file);
+				add(COMB_ST);
 				
 			} else {
 				

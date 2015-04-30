@@ -45,7 +45,7 @@ public class EnviSetup {
 	}
 	
 	private static String[] setupArgs(String[] args, Log log) 
-			throws IllegalInputException{
+			throws IllegalInputException {
 	
 		if(args.length != 8) {
 			String msg = "Error: Parameter length incorrect";
