@@ -1,6 +1,6 @@
-package cms;
+package analysis;
 
-public class CMS {
+public class Analyzer {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
