@@ -19,6 +19,14 @@ public class SNP implements Comparable<SNP>, Serializable {
 		snp_id = "";
 	}
 	
+	public SNP(int pos, String snp_id) {
+		
+		this.pos = pos;
+		this.snp_id = snp_id;
+		a0 = "";
+		a1 = "";
+	}
+	
 	public SNP(int pos, String a0, String a1, String snp_id) {
 
 		this.pos = pos;

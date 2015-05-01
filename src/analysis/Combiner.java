@@ -1,12 +1,17 @@
 package analysis;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.LinkedList;
 import java.util.List;
 
+import errors.FileParsingException;
 import errors.IllegalInputException;
 import tools.*;
 
+//WindowCombiner
 public class Combiner {
 
 	/**
@@ -26,10 +31,8 @@ public class Combiner {
 			 checkArgs(args, log);
 			 
 			 Combiner c = new Combiner(args[0], log);
-			 c.combineStats(args[1], args[2]);
+			 c.combineWindows(args[1], args[2]);
 			 c.writeStats();
-			 
-			 log.addLine("Finished!");
 			 
 		} catch (Exception e) {
 			
@@ -56,7 +59,7 @@ public class Combiner {
 		log.addLine("Window Range:\t" + args[2] + "\n");
 	}
 	
-	private static String[] DEFAULT = {"i", "h", "x", "d", "f"};
+	private static String[] DEFAULT = {"i", "x", "h", "d", "f"};
 	
 	private File out_dir;
 	private File stats_dir;
@@ -88,7 +91,7 @@ public class Combiner {
 	}
 	
 	//combines only some/all of the stats (smarter method)
-	public void combineStats(String str, String range) throws Exception {
+	public void combineWindows(String str, String range) throws Exception {
 		
 		stat_str = createStatString(str);
 		int dwn_rng = getDownRng(range);
@@ -99,16 +102,53 @@ public class Combiner {
 	}
 	
 	//combines all of the stats
-	public void combineStats() {
+	public void combineWindows() {
 		
 		stat_str = DEFAULT;
+		log.addLine("Reading in files");
+		importData();
+		
 	}
 	
 	//writes the stats to file (can be called from Analyzer too!)
 	//NOTE: dont create the output file structure until this method is called
-	public void writeStats() {
+	public void writeStats() throws FileParsingException {
 		
-		boolean i,h,x,d,f = false;
+		try {
+			out_dir = new File(out_dir.getAbsolutePath() + File.separator + "final_out");
+			out_dir.mkdir();
+			
+			File out_file = new File(out_dir.getAbsoluteFile() + File.separator 
+					+ "combined_windows.tsv");
+			int num = 1;
+			while(out_file.exists()) {
+				out_file = new File(out_dir.getAbsoluteFile() + File.separator 
+						+ "combined_windows" + num + ".tsv");
+				num++;
+			}
+			out_file.createNewFile();
+			
+			if(stat_str.equals(DEFAULT))
+				simplePrint(out_file);
+			else 
+				specificPrint(out_file);
+			
+		} catch(IOException e) {
+			String msg = "Error: There was a problem with printing to the output file in " + out_dir.getAbsolutePath();
+			throw new FileParsingException(log, msg);
+		}
+		
+	}
+	
+	public List<WindowStats> getAllStats() {
+		return all_ws;
+	}
+	
+	private void specificPrint(File out_file) throws FileNotFoundException {
+		
+		boolean i,x,h,d,f;
+		i = x = h = d = f = false;
+		
 		if(ssContains("i"))
 			i = true;
 		if(ssContains("h"))
@@ -119,29 +159,90 @@ public class Combiner {
 			d = true;
 		if(ssContains("f"))
 			f = true;
+		
+		PrintWriter pw = new PrintWriter(out_file);
+		pw.print("snp_id\tposition");
+		if(i)
+			pw.print("\tiHS");
+		if(x)
+			pw.print("\tXPEHH");
+		if(h)
+			pw.print("\tiHH");
+		if(d)
+			pw.print("\tDAF");
+		if(f)
+			pw.print("\tFst");
+		pw.print("\n");
+		
+		for(int j = 0; j < all_ws.size(); j++) {
+			
+			WindowStats ws = all_ws.get(j);
+			List<SNP> all_snps = ws.getAllSNPs();
+			for(int k = 0; k < all_snps.size(); k++) {
+				
+				SNP snp = all_snps.get(k);
+				pw.write(snp.getSnpID() + "\t" + snp.getPosition());
+				if(i)
+					pw.write("\t" + ws.getIhsScore(snp).toString());
+				if(x)
+					pw.write("\t" + ws.getXpehhScore(snp).toString());
+				if(h)
+					pw.write("\t" + ws.getIhhScore(snp).toString());
+				if(d)
+					pw.write("\t" + ws.getDafScore(snp).toString());
+				if(f)
+					pw.write("\t" + ws.getFstScore(snp).toString());
+				pw.write("\n");	
+			}
+		}
+		
+		pw.close();
 	}
 	
-	public List<WindowStats> getAllStats() {
-		return all_ws;
+	private void simplePrint(File out_file) throws FileNotFoundException {
+		
+		PrintWriter pw = new PrintWriter(out_file);
+		pw.print("snp_id\tposition\tiHS\tXPEHH\tiHH\tDAF\tFst\n");
+		
+		for(int i = 0; i < all_ws.size(); i++)
+			pw.print(all_ws.get(i));
+		
+		pw.close();
+	}
+	
+	private void importData() {
+		
+		String[] all_file_names = stats_dir.list();
+		
+		for(int i = 0; i < all_file_names.length; i++) {
+			
+			File win_file = new File(stats_dir.getAbsolutePath() 
+					+ File.separator + all_file_names[i]);
+			addFile(win_file);
+		}
 	}
 	
 	private void importData(int dwn_rng, int up_rng) {
-		
-		
 		
 		String[] all_files = stats_dir.list();
 		
 		for(int i = dwn_rng; i <= up_rng; i++) {
 			
 			File win_file = getWindowFile(i, all_files);
-			if(win_file != null && win_file.exists()) {
-				
-				int st_pos = getStart(win_file.getName());
-				int end_pos = getEnd(win_file.getName());
-				
-				
-				
-			}
+			addFile(win_file);
+		}
+	}
+	
+	private void addFile(File win_file) {
+		
+		if(win_file != null && win_file.exists()) {
+			
+			int st_pos = getStart(win_file.getName());
+			int end_pos = getEnd(win_file.getName());
+			
+			WindowParser wp = new WindowParser(win_file, st_pos, end_pos);
+			WindowStats ws = wp.parseWindow();
+			all_ws.add(ws);
 		}
 	}
 	
@@ -149,8 +250,6 @@ public class Combiner {
 		
 		int st_indx = name.indexOf("-e");
 		int end_indx = name.indexOf(".tsv");
-		
-		System.out.println(name.substring((st_indx + 2), end_indx));
 		
 		return Integer.parseInt(name.substring((st_indx + 2), end_indx));
 	}
@@ -160,18 +259,16 @@ public class Combiner {
 		int st_indx = name.indexOf("_s");
 		int end_indx = name.indexOf("-e");
 		
-		System.out.println(Integer.parseInt(name.substring((st_indx + 2), end_indx)));
-		
 		return Integer.parseInt(name.substring((st_indx + 2), end_indx));
 	}
 	
-	private File getWindowFile(int win_num, String[] all_files) {
+	private File getWindowFile(int win_num, String[] all_file_names) {
 		
-		for(int i = 0; i < all_files.length; i++) {
+		for(int i = 0; i < all_file_names.length; i++) {
 			
-			String name = all_files[i];
+			String name = all_file_names[i];
 			if(name.contains("win" + win_num + "_")) 
-				return new File(name);
+				return new File(stats_dir.getAbsolutePath() + File.separator + name);
 		}
 		
 		log.addLine("\tWarning: Could not find window number " + win_num);
@@ -181,7 +278,7 @@ public class Combiner {
 	private boolean ssContains(String stat) {
 		
 		for(int i = 0; i < stat_str.length; i++) {
-			if(stat_str[i] == stat)
+			if(stat_str[i].equals(stat))
 				return true;
 		}
 		
