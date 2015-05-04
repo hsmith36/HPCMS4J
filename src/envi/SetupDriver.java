@@ -288,9 +288,9 @@ public class SetupDriver {
 			run_intersect = false;
 		
 		//=======Instantiate Parsers==========
-		VcfParcer tp_vp = new VcfParcer();
-		VcfParcer xp_vp = new VcfParcer();
-		VcfParcer op_vp = new VcfParcer();
+		VcfParser tp_vp = new VcfParser();
+		VcfParser xp_vp = new VcfParser();
+		VcfParser op_vp = new VcfParser();
 		MapParser mp = new MapParser(map_file, log);
 		
 		//========Import Phased Data===========
