@@ -11,54 +11,8 @@ import errors.FileParsingException;
 import errors.IllegalInputException;
 import tools.*;
 
-//WindowCombiner
 public class Combiner {
 
-	/**
-	 * Gets all the data from all the stats output files
-	 * If directly called from main it will print the data (any combination of tests) into one big file
-	 * If called from Analyzer it will return List<WindowStats> for further analysis
-	 * 
-	 * @param args0		out dir
-	 * @param args1		stats string ("i:h:x:d:f" or any combination of that)
-	 * @param args2		window range ("x-y")
-	 */
-	public static void main(String[] args) {
-		
-		Log log = new Log(Log.type.combine);
-		
-		try {
-			 checkArgs(args, log);
-			 
-			 Combiner c = new Combiner(args[0], log);
-			 c.combineWindows(args[1], args[2]);
-			 c.writeStats();
-			 
-		} catch (Exception e) {
-			
-			System.out.println("CMS Died Prematurely." 
-					+ " Check log output for troubleshooting.");
-			
-			log.addLine("\n\nCMS Died Prematurely. Error in computation.");
-			
-			e.printStackTrace();
-		}
-	}
-	
-	private static void checkArgs(String[] args, Log log) 
-			throws IllegalInputException {
-		
-		if(args.length != 3) {
-			String msg = "Error: Parameter length incorrect";
-			throw new IllegalInputException(log, msg);
-		}
-		
-		log.addLine("Working Parameters");
-		log.addLine("Output Dir:\t" + args[0]);
-		log.addLine("Stats String:\t" + args[1]);
-		log.addLine("Window Range:\t" + args[2] + "\n");
-	}
-	
 	private static String[] DEFAULT = {"i", "x", "h", "d", "f"};
 	
 	private File out_dir;
@@ -146,8 +100,8 @@ public class Combiner {
 	
 	private void specificPrint(File out_file) throws FileNotFoundException {
 		
-		boolean i,x,h,d,f;
-		i = x = h = d = f = false;
+		boolean i,x,h,dd,d,f;//,t,new
+		i = x = h = dd = d = f = false;//t = new = 
 		
 		if(ssContains("i"))
 			i = true;
@@ -155,10 +109,16 @@ public class Combiner {
 			h = true;
 		if(ssContains("x"))
 			x = true;
+		if(ssContains("dd"))
+			dd = true;
 		if(ssContains("d"))
 			d = true;
 		if(ssContains("f"))
 			f = true;
+		//if(ssContains("t"))
+		//	t = true;
+		//if(ssContains("new"))
+		//	new = true;
 		
 		PrintWriter pw = new PrintWriter(out_file);
 		pw.print("snp_id\tposition");
@@ -168,10 +128,16 @@ public class Combiner {
 			pw.print("\tXPEHH");
 		if(h)
 			pw.print("\tiHH");
+		if(dd)
+			pw.print("\tdDAF");
 		if(d)
 			pw.print("\tDAF");
 		if(f)
 			pw.print("\tFst");
+		//if(t)
+		//	pw.print("\t"TajD");
+		//if(new)
+		//	pw.print("\t"New");
 		pw.print("\n");
 		
 		for(int j = 0; j < all_ws.size(); j++) {
@@ -188,11 +154,19 @@ public class Combiner {
 					pw.write("\t" + ws.getXpehhScore(snp).toString());
 				if(h)
 					pw.write("\t" + ws.getIhhScore(snp).toString());
+				if(dd)
+					pw.write("\t" + ws.getDDafScore(snp).toString());
 				if(d)
 					pw.write("\t" + ws.getDafScore(snp).toString());
 				if(f)
 					pw.write("\t" + ws.getFstScore(snp).toString());
+				//if(t)
+				//	pw.write("\t" + ws.getTajDScore(snp).toString());
+				//if(new)
+				//	pw.write("\t" + ws.getNewScore(snp).toString());
 				pw.write("\n");	
+				
+				
 			}
 		}
 		
@@ -202,7 +176,7 @@ public class Combiner {
 	private void simplePrint(File out_file) throws FileNotFoundException {
 		
 		PrintWriter pw = new PrintWriter(out_file);
-		pw.print("snp_id\tposition\tiHS\tXPEHH\tiHH\tDAF\tFst\n");
+		pw.print("snp_id\tposition\tiHS\tXPEHH\tiHH\tdDAF\tDAF\tFst\n");
 		
 		for(int i = 0; i < all_ws.size(); i++)
 			pw.print(all_ws.get(i));
@@ -321,7 +295,8 @@ public class Combiner {
 		for(int i = 0; i < fin_str.length; i++) {
 			
 			String s = fin_str[i];
-			if(!s.equals("i") && !s.equals("h") && !s.equals("x") && !s.equals("d") && !s.equals("f")) {
+			if(!s.equals("i") && !s.equals("h") && !s.equals("x") 
+					&& !s.equals("d") && !s.equals("f") && !s.equals("dd")) {
 				String msg = "Error: Input stat string has invalid characters or values";
 				throw new IllegalInputException(log, msg);
 			}

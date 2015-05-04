@@ -73,8 +73,10 @@ public class StatsCalc {
 	private iHS i;
 	private iHH h;
 	private XPEHH x;
-	private DAF d;
+	private dDAF d;
 	private Fst f;
+	//private TajD t;
+	//private NewStat new;
 	
 	private Log log;
 	
@@ -103,9 +105,6 @@ public class StatsCalc {
 		
 		try {
 			
-//			File win_stats = new File(out_dir.getAbsoluteFile() + File.separator 
-//					+ "win" + win_num + "_" + "chr" + chr + "_" + "ind" 
-//					+ tp_win.getStIndex() + "-" + tp_win.getEndIndex() + ".tsv");
 			File win_stats = new File(out_dir.getAbsoluteFile() + File.separator 
 					+ "win" + win_num + "_" + "chr" + chr + "_s" 
 					+ tp_win.getStPos() + "-e" + tp_win.getEndPos() + ".tsv");
@@ -116,11 +115,14 @@ public class StatsCalc {
 			ws.setIHS(i.getStats(), i.getSNPs());
 			ws.setIHH(h.getStats(), h.getSNPs());
 			ws.setXPEHH(x.getStats(), x.getSNPs());
-			ws.setDAF(d.getStats(), d.getSNPs());
+			ws.setDDAF(d.getStats(), d.getSNPs());
+			ws.setDAF(d.getDafStats(), d.getSNPs());
 			ws.setFst(f.getStats(), f.getSNPs());
+			//ws.setTAJD(t.getStats(), t.getSNPs());
+			//ws.setNEW(new.getStats(), new.getSNPs());
 			
 			PrintWriter pw = new PrintWriter(win_stats);
-			pw.print("snp_id\tposition\tiHS\tXPEHH\tiHH\tDAF\tFst\n");
+			pw.print("snp_id\tposition\tiHS\tXPEHH\tiHH\tdDAF\tDAF\tFst\n");//\tTajD\tNew
 			pw.print(ws);
 			pw.close();
 			
@@ -156,13 +158,23 @@ public class StatsCalc {
 			Thread.sleep(WAIT_TIME);
 			f_thrd.start();
 			
-			synchronize(i_thrd, h_thrd, x_thrd, d_thrd, f_thrd);
+			//StatsThread t_thrd = new StatsThread(t, lock);
+			//Thread.sleep(WAIT_TIME);
+			//t_thrd.start();
+			
+			//StatsThread new_thrd = new StatsThread(new, lock);
+			//Thread.sleep(WAIT_TIME);
+			//new_thrd.start();
+			
+			synchronize(i_thrd, h_thrd, x_thrd, d_thrd, f_thrd);//add t_thrd
 			
 			i = (iHS) i_thrd.getTest();
 			h = (iHH) h_thrd.getTest();
 			x = (XPEHH) x_thrd.getTest();
-			d = (DAF) d_thrd.getTest();
+			d = (dDAF) d_thrd.getTest();
 			f = (Fst) f_thrd.getTest();
+			//t = (TajD) t_thrd.getTest();
+			//new = (NewStat) new_thrd.getTest();
 		
 		} catch (InterruptedException e) { 
 			log.addLine(win_num + "\tThreadingError\tThreading for this process did not complete");
@@ -233,8 +245,10 @@ public class StatsCalc {
 			i = new iHS(tp_win, tp_indv, anc_types, tp_wins, gm);
 			h = new iHH(tp_win, tp_indv, anc_types, tp_wins, gm);
 			x = new XPEHH(txin_win, txin_wins, tp_inx_indv, xp_int_indv, gm);
-			d = new DAF(tp_win, tp_indv, xoin_wins, xp_ino_indv, op_inx_indv, anc_types);
+			d = new dDAF(tp_win, tp_indv, xoin_wins, xp_ino_indv, op_inx_indv, anc_types);
 			f = new Fst(txin_win, tp_inx_indv, xp_int_indv, op_inx_indv);
+			//t = new TajD(args0, args1, ..., argsx);
+			//new = new NewStat(args0, args1, ..., argsx);
 			
 		} catch (IOException e) {
 			log.addLine(win_num + "\tReadFileError\tCould not find the correct file for proper loading of envi; check chr num and api");

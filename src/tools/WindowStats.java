@@ -14,15 +14,26 @@ public class WindowStats {
 	private List<SNP> ihs_snps;
 	private List<SNP> xpehh_snps;
 	private List<SNP> ihh_snps;
+	private List<SNP> ddaf_snps;
 	private List<SNP> daf_snps;
 	private List<SNP> fst_snps;
+	//private List<SNP> tajd_snps;
+	//private List<SNP>	new_snps;
 	
 	private List<Double> ihs_stats;
 	private List<Double> xpehh_stats;
 	private List<Double> ihh_stats;
+	private List<Double> ddaf_stats;
 	private List<Double> daf_stats;
 	private List<Double> fst_stats;
+	//private List<Double> tajd_stats;
+	//private List<Double> new_stats;
 	
+	
+	public WindowStats() {
+		
+		this(-1, -1);
+	}
 	
 	public WindowStats(int st_pos, int end_pos) {
 		
@@ -32,14 +43,20 @@ public class WindowStats {
 		ihs_snps = null;
 		xpehh_snps = null;
 		ihh_snps = null;
+		ddaf_snps = null;
 		daf_snps = null;
 		fst_snps = null;
+		//tajd_snps = null;
+		//new_snps = null;
 		
 		ihs_stats = null;
 		xpehh_stats = null;
 		ihh_stats = null;
+		ddaf_stats = null;
 		daf_stats = null;
 		fst_stats = null;
+		//tajd_stats = null;
+		//new_stats = null;
 	}
 	
 	public List<SNP> getAllSNPs() {
@@ -49,8 +66,11 @@ public class WindowStats {
 		all_snps = buildAllSNPs(all_snps, ihs_snps);
 		all_snps = buildAllSNPs(all_snps, xpehh_snps);
 		all_snps = buildAllSNPs(all_snps, ihh_snps);
+		all_snps = buildAllSNPs(all_snps, ddaf_snps);
 		all_snps = buildAllSNPs(all_snps, daf_snps);
 		all_snps = buildAllSNPs(all_snps, fst_snps);
+		//all_snps = buildAllSNPs(all_snps, tajd_snps);
+		//all_snps = buildAllSNPs(all_snps, new_snps);
 		
 		Collections.sort(all_snps);
 			
@@ -72,8 +92,11 @@ public class WindowStats {
 		nxt_pos = comparePositions(nxt_pos, prev_pos, ihs_snps);
 		nxt_pos = comparePositions(nxt_pos, prev_pos, xpehh_snps);
 		nxt_pos = comparePositions(nxt_pos, prev_pos, ihh_snps);
+		nxt_pos = comparePositions(nxt_pos, prev_pos, ddaf_snps);
 		nxt_pos = comparePositions(nxt_pos, prev_pos, daf_snps);
 		nxt_pos = comparePositions(nxt_pos, prev_pos, fst_snps);
+		//nxt_pos = comparePositions(nxt_pos, prev_pos, tajd_snps);
+		//nxt_pos = comparePositions(nxt_pos, prev_pos, new_snps);
 		
 		if(nxt_pos == prev_pos) {//check this...
 			//at end
@@ -130,6 +153,19 @@ public class WindowStats {
 		this.ihh_snps = ihh_snps;
 	}
 
+	public List<SNP> getDDAFsnps() {
+		return ddaf_snps;
+	}
+
+	public List<Double> getDDAFstats() {
+		return ddaf_stats;
+	}
+
+	public void setDDAF(List<Double> daf_stats, List<SNP> daf_snps) {
+		this.ddaf_stats = daf_stats;
+		this.ddaf_snps = daf_snps;
+	}
+	
 	public List<SNP> getDAFsnps() {
 		return daf_snps;
 	}
@@ -142,6 +178,32 @@ public class WindowStats {
 		this.daf_stats = daf_stats;
 		this.daf_snps = daf_snps;
 	}
+	
+//	public List<SNP> getTAJDsnps() {
+//		return daf_snps;
+//	}
+//
+//	public List<Double> getTAJDstats() {
+//		return daf_stats;
+//	}
+//
+//	public void setTAJD(List<Double> tajd_stats, List<SNP> tajd_snps) {
+//		this.tajd_stats = tajd_stats;
+//		this.tajd_snps = tajd_snps;
+//	}
+	
+//	public List<SNP> getNEWsnps() {
+//		return new_snps;
+//	}
+//
+//	public List<Double> getNEWstats() {
+//		return new_stats;
+//	}
+//
+//	public void setNEW(List<Double> new_stats, List<SNP> new_snps) {
+//		this.new_stats = new_stats;
+//		this.new_snps = new_snps;
+//	}
 
 	public List<SNP> getFSTsnps() {
 		return fst_snps;
@@ -196,6 +258,16 @@ public class WindowStats {
 		return Double.NaN;
 	}
 	
+	public Double getDDafScore(SNP snp) {
+		
+		for(int i = 0; i < ddaf_snps.size(); i++) {
+			if(ddaf_snps.get(i).sameAs(snp))
+				return ddaf_stats.get(i);
+		}
+		
+		return Double.NaN;
+	}
+	
 	public Double getDafScore(SNP snp) {
 		
 		for(int i = 0; i < daf_snps.size(); i++) {
@@ -205,6 +277,26 @@ public class WindowStats {
 		
 		return Double.NaN;
 	}
+
+//	public Double getTajDScore(SNP snp) {
+//	
+//		for(int i = 0; i < tajd_snps.size(); i++) {
+//			if(tajd_snps.get(i).sameAs(snp))
+//				return tajd_stats.get(i);
+//		}
+//	
+//		return Double.NaN;
+//	}
+	
+//	public Double getNewScore(SNP snp) {
+//	
+//		for(int i = 0; i < new_snps.size(); i++) {
+//			if(new_snps.get(i).sameAs(snp))
+//				return new_stats.get(i);
+//		}
+//	
+//		return Double.NaN;
+//	}
 	
 	public Double getFstScore(SNP snp) {
 		
@@ -214,6 +306,13 @@ public class WindowStats {
 		}
 		
 		return Double.NaN;
+	}
+	
+	public boolean containsSNP(SNP s) {
+		if(st_pos <= s.getPosition() && end_pos >= s.getPosition())
+			return true;
+		else
+			return false;
 	}
 	
 	private List<SNP> buildAllSNPs(List<SNP> all_snps, List<SNP> snps) {
@@ -284,16 +383,22 @@ public class WindowStats {
 			Double iHS_score = getScore(ihs_snps, ihs_stats, cur_snp);
 			Double XPEHH_score = getScore(xpehh_snps, xpehh_stats, cur_snp);
 			Double iHH_score = getScore(ihh_snps, ihh_stats, cur_snp);
+			Double DDAF_score = getScore(ddaf_snps, ddaf_stats, cur_snp);
 			Double DAF_score = getScore(daf_snps, daf_stats, cur_snp);
 			Double Fst_score = getScore(fst_snps, fst_stats, cur_snp);
+			//Double TAJD_score = getScore(tajd_snps, tajd_stats, cur_snp);
+			//Double NEW_score = getScore(new_snps, new_stats, cur_snp);
 			
 			sb.append(cur_snp.getSnpID() + "\t");
 			sb.append(cur_snp.getPosition() + "\t");
 			sb.append(iHS_score + "\t");
 			sb.append(XPEHH_score + "\t");
 			sb.append(iHH_score + "\t");
+			sb.append(DDAF_score + "\t");
 			sb.append(DAF_score + "\t");
 			sb.append(Fst_score + "\n");
+			//sb.append(TAJD_score + "\t");
+			//sb.append(NEW_score + "\t");//check "\n"
 		}
 		
 		return sb.toString();
