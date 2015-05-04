@@ -2,6 +2,8 @@ package analysis;
 
 
 import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -56,9 +58,7 @@ public class Analyzer {
 				
 				Analyzer a = new Analyzer(log, new File(args[0]), new File(args[1]), c.getAllStats());
 				a.runCmsAnalysis();
-				
-				//TODO: Write data
-				System.out.println(a);
+				a.writeStats();
 			}
 			 
 		} catch (Exception e) {
@@ -101,11 +101,6 @@ public class Analyzer {
 	}
 	
 	
-	
-	
-	
-	
-	
 	private final int NUM_TESTS = 5;
 	private final double DAF_CUTOFF = 0.2;
 	
@@ -142,6 +137,34 @@ public class Analyzer {
 		for(int i = 0; i < all_ws.size(); i++) {
 			WindowStats cur_ws = all_ws.get(i);
 			calcCmsScores(cur_ws, neutral_sim, select_sim);//pass simulations too
+		}
+	}
+	
+	public void writeStats() throws FileParsingException {
+		
+		try {
+			out_dir = new File(out_dir.getAbsolutePath() + File.separator + "final_out");
+			if(!out_dir.exists())
+				out_dir.mkdir();
+			
+			File out_file = new File(out_dir.getAbsoluteFile() + File.separator 
+					+ "analyzed_windows.tsv");
+			int num = 1;
+			while(out_file.exists()) {
+				out_file = new File(out_dir.getAbsoluteFile() + File.separator 
+						+ "analyzed_windows" + num + ".tsv");
+				num++;
+			}
+			out_file.createNewFile();
+			
+			PrintWriter pw = new PrintWriter(out_file);
+			pw.write(this.toString());
+			pw.close();
+			
+			
+		} catch(IOException e) {
+			String msg = "Error: There was a problem with printing to the output file in " + out_dir.getAbsolutePath();
+			throw new FileParsingException(log, msg);
 		}
 	}
 	

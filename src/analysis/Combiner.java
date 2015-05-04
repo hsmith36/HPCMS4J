@@ -13,7 +13,7 @@ import tools.*;
 
 public class Combiner {
 
-	private static String[] DEFAULT = {"i", "x", "h", "d", "f"};
+	private static String[] DEFAULT = {"i", "x", "h", "dd", "d", "f"};//"t", "new"
 	
 	private File out_dir;
 	private File stats_dir;
@@ -70,7 +70,8 @@ public class Combiner {
 		
 		try {
 			out_dir = new File(out_dir.getAbsolutePath() + File.separator + "final_out");
-			out_dir.mkdir();
+			if(!out_dir.exists())
+				out_dir.mkdir();
 			
 			File out_file = new File(out_dir.getAbsoluteFile() + File.separator 
 					+ "combined_windows.tsv");
