@@ -276,7 +276,6 @@ public class SetupDriver {
 		anc_types = ap.parseAncestralTypes();
 	}
 	
-	//TODO: **************THIS STILL NEEDS TO BE DONE***************************
 	private void runVcfParcers(int chr) throws Exception {
 		
 		//========Find Path Variables========
@@ -288,24 +287,24 @@ public class SetupDriver {
 			run_intersect = false;
 		
 		//=======Instantiate Parsers==========
-		VcfParser tp_vp = new VcfParser();
-		VcfParser xp_vp = new VcfParser();
-		VcfParser op_vp = new VcfParser();
+		VcfParser tp_vp = new VcfParser(tp_vcf_path, chr, log);
+		VcfParser xp_vp = new VcfParser(xp_vcf_path, chr, log);
+		VcfParser op_vp = new VcfParser(op_vcf_path, chr, log);
 		MapParser mp = new MapParser(map_file, log);
 		
 		//========Import Phased Data===========
-//		tp_wins = tp_vp.getWindows();
-//		tp_indv = tp_vp.getIndividuals();
-//		
-//		xp_wins = tp_vp.getWindows();
-//		xp_indv = tp_vp.getIndividuals();
-//		
-//		op_wins = tp_vp.getWindows();
-//		op_indv = tp_vp.getIndividuals();
+		tp_wins = tp_vp.getWindows();
+		tp_indv = tp_vp.getIndividuals();
+		
+		xp_wins = xp_vp.getWindows();
+		xp_indv = xp_vp.getIndividuals();
+		
+		op_wins = op_vp.getWindows();
+		op_indv = op_vp.getIndividuals();
 		
 		//=======Import Environment Data========
 		gm = mp.parseGeneMap();
-//		anc_types = tp_vp.getAncestralTypes();
+		anc_types = tp_vp.getAncestralTypes();
 	}
 	
 	private String getPhasedPath(File dir, String type, int chr, String pop) 

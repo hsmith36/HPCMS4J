@@ -11,7 +11,7 @@ public class Individual implements Serializable {
 	private int id;
 	private int str1_index;
 	private int str2_index;
-	private byte chr;
+	private int chr;
 	private boolean[] strand1;
 	private boolean[] strand2;
 	
@@ -25,7 +25,7 @@ public class Individual implements Serializable {
 		strand2 = new boolean[ARRAY_SIZE];
 	}
 	
-	public Individual(int id, byte chr) {
+	public Individual(int id, int chr) {
 		
 		this.id = id;
 		this.chr = chr;
@@ -159,7 +159,7 @@ public class Individual implements Serializable {
 		this.id = id;
 	}
 	
-	public byte getChr() {
+	public int getChr() {
 		return chr;
 	}
 	
