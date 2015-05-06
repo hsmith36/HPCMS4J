@@ -280,11 +280,8 @@ public class SetupDriver {
 		
 		//========Find Path Variables==========
 		String tp_vcf_path = getPhasedPath(data_dir, VCF_TYPE, chr, t_pop);
-		String xp_vcf_path = getPhasedPath(data_dir, VCF_TYPE, chr, t_pop);
-		String op_vcf_path = getPhasedPath(data_dir, VCF_TYPE, chr, t_pop);
-		
-		if(tp_vcf_path.equals(xp_vcf_path) && tp_vcf_path.equals(op_vcf_path))
-			run_intersect = false;
+		String xp_vcf_path = getPhasedPath(data_dir, VCF_TYPE, chr, x_pop);
+		String op_vcf_path = getPhasedPath(data_dir, VCF_TYPE, chr, o_pop);
 		
 		//=====Run Parsers and Save Data=======
 		VcfParser tp_vp = new VcfParser(tp_vcf_path, chr, log);
@@ -293,16 +290,14 @@ public class SetupDriver {
 		tp_indv = tp_vp.getIndividuals();
 		
 		VcfParser xp_vp = new VcfParser(xp_vcf_path, chr, log);
-		xp_vp.parseVCF(win_size, true);
+		xp_vp.parseVCF(win_size, false);
 		xp_wins = xp_vp.getWindows();
 		xp_indv = xp_vp.getIndividuals();
 		
-		//if(run_intersect) {
-			VcfParser op_vp = new VcfParser(op_vcf_path, chr, log);
-			op_vp.parseVCF(win_size, true);
-			op_wins = op_vp.getWindows();
-			op_indv = op_vp.getIndividuals();
-		//}
+		VcfParser op_vp = new VcfParser(op_vcf_path, chr, log);
+		op_vp.parseVCF(win_size, false);
+		op_wins = op_vp.getWindows();
+		op_indv = op_vp.getIndividuals();
 		
 		MapParser mp = new MapParser(map_file, log);
 		

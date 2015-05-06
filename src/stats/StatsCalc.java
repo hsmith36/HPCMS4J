@@ -297,7 +297,7 @@ public class StatsCalc {
 			String file_name = all_files[i];
 			if(file_name.contains("chr" + chr)
 					&& file_name.contains("win" + win_num)
-					&& !file_name.contains("x"))
+					&& !file_name.contains("x")) 
 				return win_dir.getAbsolutePath() + File.separator + file_name;
 		}
 		

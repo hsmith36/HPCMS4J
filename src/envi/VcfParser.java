@@ -48,8 +48,6 @@ public class VcfParser {
 	
 	public void parseVCF(int win_size, boolean anc_data) throws FileParsingException {
 		
-		System.out.println("Running VCF2 parser");
-		
 		try {
 			
 			Scanner scan = new Scanner(new File(file_path));
@@ -105,61 +103,58 @@ public class VcfParser {
 				}
 				
 				if(ln[4].contains(",")) {
-					
-					//Fill in Window and Ancestral data
-					String a0 = ln[3].toUpperCase();
-					String anc_allele = getAncestralAllele(ln);
-					String[] alt_alleles = ln[4].split(",");
-					
-					String[] alt_ids = createAltIDs(pos, a0, alt_alleles);
-					
-					//adding alternate data
-					for(int i = 0; i < alt_alleles.length; i++) {
-						cur_win.addSNP(pos, a0, alt_alleles[i], alt_ids[i]);
-						if(anc_data && validAncestralData(ln[7]))
-							anc_win.addSNP(pos, anc_allele, "-", alt_ids[i]);
-					}
-					//adding a0 data
-					cur_win.addSNP(pos, alt_alleles[0], a0, alt_ids[alt_ids.length - 1]);
-					if(anc_data && validAncestralData(ln[7]))
-						anc_win.addSNP(pos, anc_allele, "-", alt_ids[alt_ids.length - 1]);
-					
-					//Fill in Individual data
-					
-					for(int i = DEFAULT_COL; i < ln.length; i++) {
-						//adding alternate data
-						String[] alleles = ln[i].split("\\|");
+					if(anc_data && validAncestralData(ln[7])) {
+						//Fill in Window and Ancestral data
+						String a0 = ln[3].toUpperCase();
+						String anc_allele = getAncestralAllele(ln);
+						String[] alt_alleles = ln[4].split(",");
 						
-						for(int j = 0; j < alt_alleles.length; j++) {
+						String[] alt_ids = createAltIDs(pos, a0, alt_alleles);
+						
+						//adding alternate data
+						for(int i = 0; i < alt_alleles.length; i++) {
+							cur_win.addSNP(pos, a0, alt_alleles[i], alt_ids[i]);
+							if(anc_data && validAncestralData(ln[7]))
+								anc_win.addSNP(pos, anc_allele, "-", alt_ids[i]);
+						}
+						//adding a0 data
+						cur_win.addSNP(pos, alt_alleles[0], a0, alt_ids[alt_ids.length - 1]);
+						if(anc_data && validAncestralData(ln[7]))
+							anc_win.addSNP(pos, anc_allele, "-", alt_ids[alt_ids.length - 1]);
+						
+						//Fill in Individual data
+						
+						for(int i = DEFAULT_COL; i < ln.length; i++) {
+							//adding alternate data
+							String[] alleles = ln[i].split("\\|");
 							
-							if(i == DEFAULT_COL) {
-								System.out.println(alleles[0] + " COMPARED TO " + alleles[1]);
+							for(int j = 0; j < alt_alleles.length; j++) {
+								
+								if(Integer.parseInt(alleles[0]) == j + 1) 
+									individuals[i-DEFAULT_COL].addAlleleToStrand1(true);
+								else
+									individuals[i-DEFAULT_COL].addAlleleToStrand1(false);
+								
+								if(Integer.parseInt(alleles[1]) == j + 1)
+									individuals[i-DEFAULT_COL].addAlleleToStrand2(true);
+								else
+									individuals[i-DEFAULT_COL].addAlleleToStrand2(false);
+								
 							}
-							
-							if(Integer.parseInt(alleles[0]) == j + 1) 
+							//adding a0 data
+							if(Integer.parseInt(alleles[0]) == 0)
 								individuals[i-DEFAULT_COL].addAlleleToStrand1(true);
 							else
 								individuals[i-DEFAULT_COL].addAlleleToStrand1(false);
 							
-							if(Integer.parseInt(alleles[1]) == j + 1)
+							if(Integer.parseInt(alleles[1]) == 0)
 								individuals[i-DEFAULT_COL].addAlleleToStrand2(true);
 							else
 								individuals[i-DEFAULT_COL].addAlleleToStrand2(false);
-							
 						}
-						//adding a0 data
-						if(Integer.parseInt(alleles[0]) == 0)
-							individuals[i-DEFAULT_COL].addAlleleToStrand1(true);
-						else
-							individuals[i-DEFAULT_COL].addAlleleToStrand1(false);
 						
-						if(Integer.parseInt(alleles[1]) == 0)
-							individuals[i-DEFAULT_COL].addAlleleToStrand2(true);
-						else
-							individuals[i-DEFAULT_COL].addAlleleToStrand2(false);
+						index += alt_alleles.length;
 					}
-					
-					index += alt_alleles.length;
 				}
 				else {
 					//Fill in Window and Ancestral data
@@ -189,19 +184,21 @@ public class VcfParser {
 			}
 			
 			//***********Testing***********
-//			PrintWriter pw = new PrintWriter(new File("indv.txt"));
-//			pw.println("Individuals: " + individuals.length);
-//			for(int i = 0; i < individuals.length; i++)
-//				pw.println(individuals[i]);
-//			pw.close();
-//			
-//			System.out.println("\n\nWindows: " + windows.size());
-//			for(int i = 0; i < windows.size(); i++) 
-//				System.out.println(windows.get(i));
-//			
-//			System.out.println("\n\nAncestral:" + ancestral.size());
-//			for (int i = 0; i < ancestral.size(); i++)
-//				System.out.println(ancestral.get(i));
+			if(anc_data) {
+				PrintWriter pw = new PrintWriter(new File("indv.txt"));
+				pw.println("Individuals: " + individuals.length);
+				for(int i = 0; i < individuals.length; i++)
+					pw.println(individuals[i]);
+				pw.close();
+				
+//				System.out.println("\n\nWindows: " + windows.size());
+//				for(int i = 0; i < windows.size(); i++) 
+//					System.out.println(windows.get(i));
+//				
+//				System.out.println("\n\nAncestral:" + ancestral.size());
+//				for (int i = 0; i < ancestral.size(); i++)
+//					System.out.println(ancestral.get(i));
+			}
 			//******************************
 			
 		} catch (IOException e) {
@@ -238,16 +235,12 @@ public class VcfParser {
 		}
 		
 		aa = aa.substring(3);
-		System.out.println(aa);
 		String[] aa_arr = aa.split("\\|");
-		for(int i = 0; i < aa_arr.length; i++)
-			System.out.print(aa_arr[i] + "\t");
-		System.out.println();
 		
 		if(aa_arr[0].equals("?") || aa_arr[0].length() > 1) {
 			//if the ancestral indel allele is shorter than derived allele
 			if(aa_arr[1].length() < aa_arr[2].length() || aa_arr[1].equals("-")) {
-				System.out.println("smaller\t" + ln[3] + "\t" + ln[4]);
+				
 				if(ln[3].length() < ln[4].length())
 					return ln[3].toUpperCase();
 				else
@@ -255,7 +248,7 @@ public class VcfParser {
 			}
 			//if the ancestral indel allele is longer than the derived allele
 			else {
-				System.out.println("bigger\t" + ln[3] + "\t" + ln[4]);
+				
 				if(ln[3].length() > ln[4].length())
 					return ln[3].toUpperCase();
 				else
@@ -263,7 +256,6 @@ public class VcfParser {
 			}
 		} 
 		
-		System.out.println("here: " + aa_arr[0]);
 		return aa_arr[0].toUpperCase();
 	}
 	
