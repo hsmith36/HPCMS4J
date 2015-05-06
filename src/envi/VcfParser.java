@@ -1,18 +1,22 @@
 package envi;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 
 import errors.FileParsingException;
 import tools.*;
 
 
 public class VcfParser {
+	
+	private final int DEFAULT_COL = 9;
 	
 	private String file_path;
 	private int chr; 
@@ -42,154 +46,225 @@ public class VcfParser {
 		ancestral = new ArrayList<Window>();
 	}
 	
-	public void parseVCF(int wind_len, boolean ancestral_parser) throws FileParsingException
-	{
+	public void parseVCF(int win_size, boolean anc_data) throws FileParsingException {
+		
+		System.out.println("Running VCF2 parser");
+		
 		try {
-			BufferedReader br = new BufferedReader(new FileReader(file_path));
-		    String line;
-		    while ((line = br.readLine()) != null) { //get to header line
-
-		       if (line.charAt(1) != '#') { //line with header titles 
-		    	   List<String> indiv_ids = new ArrayList<String>(Arrays.asList(line.split("\t")));
-		    	   individuals = new Individual[indiv_ids.size()-9];
-		    	   for (int i = 9; i < indiv_ids.size(); i++) 
-		    		   individuals[i-9] = new Individual(Integer.parseInt(indiv_ids.get(i).substring(2)), chr); 
-		    	   
-		    	   break;
-		       }   
-		    }
-		    
-		    Window window = new Window();
-		    Window anc_window = new Window();
+			
+			Scanner scan = new Scanner(new File(file_path));
+			String line = "";
+			
+			//Setup Individual[] that will be populated
+			while(scan.hasNext()) {
+				
+				line = scan.nextLine();
+				if(line.charAt(1) != '#') {
+					
+					String[] ln_arr = line.split("\\s+");
+					
+					individuals = new Individual[ln_arr.length - DEFAULT_COL];
+					for(int i = 0; i < individuals.length; i++)
+						individuals[i] = new Individual(i, chr);
+					
+					break;
+				}
+			}
+			
+			//Add data to Individual[] and create Windows
+			Window cur_win = new Window();
+		    Window anc_win = new Window();
 		    int start_pos = 0;
-		    int end_pos = wind_len;
+		    int end_pos = win_size - 1;
 		    int index = 0;
 		    int pos = 0;
 		    
-		    while ((line = br.readLine()) != null) { // parse the rest of the file
-		    	
-		    	index++; //???
-		    	List<String> line_list = new ArrayList<String>(Arrays.asList(line.split("\t")));
-		    	
-		    	// UPDATE WINDOWS
-		    	pos = Integer.parseInt(line_list.get(1));
-		    	if (pos > (start_pos + wind_len)) { // Check to see if it's time to start a new window 
-
-		    		if(!window.equals(new Window()))
-		    			windows.add(window);
+			do {
+				String[] ln = line.split("\\s+");
+				pos = Integer.parseInt(ln[1]);
+				
+				if(pos >= (start_pos + win_size)) {
+					if(!cur_win.equals(new Window()))
+						windows.add(cur_win);
+					
+					if(anc_data && !anc_win.equals(new Window()))
+						ancestral.add(anc_win);
+					
+					while(pos >= (start_pos + win_size)) {
+						start_pos += win_size;
+						end_pos += win_size;
+					}
+					
+					cur_win.setEndIndex(index - 1);
+		    		cur_win = new Window(start_pos, end_pos, index);
 		    		
-		    		if (ancestral_parser == true) {
-		    		
-		    			if(anc_window.getSNPs() != null && anc_window.getSnpListSize() > 0)
-			    			ancestral.add(anc_window);
+		    		if (anc_data) {
+		    			anc_win.setEndIndex(index - 1);
+			    		anc_win = new Window(start_pos, end_pos, index);
 		    		}
-		    		
-		    		while (pos > (start_pos + wind_len)) {
-		    		
-		    			start_pos += wind_len;
-		    			end_pos += wind_len;
-		    		}
-		    		
-		    		window.setEndIndex(index - 1);
-		    		window = new Window(start_pos, end_pos, index);
-		    		
-		    		if (ancestral_parser == true) {
-		    		
-		    			anc_window.setEndIndex(index - 1);
-			    		anc_window = new Window(start_pos, end_pos, index);
-		    		}
-		    	}
-		    
-		    	//get SNP information & add to current window
-		    	window.addSNP(pos, line_list.get(3), line_list.get(4), line_list.get(2));
-		    	if (ancestral_parser && validAncestralData(line_list.get(7)))
-		    		anc_window.addSNP(pos, ancestralAllele(line_list), "-", line_list.get(2)); //A1 value for ancestral is -
-		       
-		    	//UPDATE INVIDUALS
-		    	for (int i = 9; i < line_list.size(); i++) { // 9 is the column number where individual info starts 
+				}
+				
+				if(ln[4].contains(",")) {
+					
+					//Fill in Window and Ancestral data
+					String a0 = ln[3].toUpperCase();
+					String anc_allele = getAncestralAllele(ln);
+					String[] alt_alleles = ln[4].split(",");
+					
+					String[] alt_ids = createAltIDs(pos, a0, alt_alleles);
+					
+					//adding alternate data
+					for(int i = 0; i < alt_alleles.length; i++) {
+						cur_win.addSNP(pos, a0, alt_alleles[i], alt_ids[i]);
+						if(anc_data && validAncestralData(ln[7]))
+							anc_win.addSNP(pos, anc_allele, "-", alt_ids[i]);
+					}
+					//adding a0 data
+					cur_win.addSNP(pos, alt_alleles[0], a0, alt_ids[alt_ids.length - 1]);
+					if(anc_data && validAncestralData(ln[7]))
+						anc_win.addSNP(pos, anc_allele, "-", alt_ids[alt_ids.length - 1]);
+					
+					//Fill in Individual data
+					
+					for(int i = DEFAULT_COL; i < ln.length; i++) {
+						//adding alternate data
+						String[] alleles = ln[i].split("\\|");
+						
+						for(int j = 0; j < alt_alleles.length; j++) {
+							
+							if(i == DEFAULT_COL) {
+								System.out.println(alleles[0] + " COMPARED TO " + alleles[1]);
+							}
+							
+							if(Integer.parseInt(alleles[0]) == j + 1) 
+								individuals[i-DEFAULT_COL].addAlleleToStrand1(true);
+							else
+								individuals[i-DEFAULT_COL].addAlleleToStrand1(false);
+							
+							if(Integer.parseInt(alleles[1]) == j + 1)
+								individuals[i-DEFAULT_COL].addAlleleToStrand2(true);
+							else
+								individuals[i-DEFAULT_COL].addAlleleToStrand2(false);
+							
+						}
+						//adding a0 data
+						if(Integer.parseInt(alleles[0]) == 0)
+							individuals[i-DEFAULT_COL].addAlleleToStrand1(true);
+						else
+							individuals[i-DEFAULT_COL].addAlleleToStrand1(false);
+						
+						if(Integer.parseInt(alleles[1]) == 0)
+							individuals[i-DEFAULT_COL].addAlleleToStrand2(true);
+						else
+							individuals[i-DEFAULT_COL].addAlleleToStrand2(false);
+					}
+					
+					index += alt_alleles.length;
+				}
+				else {
+					//Fill in Window and Ancestral data
+			    	cur_win.addSNP(pos, ln[3].toUpperCase(), ln[4].toUpperCase(), ln[2]);
+			    	if (anc_data && validAncestralData(ln[7]))
+			    		anc_win.addSNP(pos, getAncestralAllele(ln), "-", ln[2]);
+				
+			    	//Fill in Individual data
+			    	for (int i = DEFAULT_COL; i < ln.length; i++) {
+			    		
+			    		String[] alleles = ln[i].split("\\|");
+			    		individuals[i-DEFAULT_COL].addAlleleToStrand1(alleles[0]); 
+			    		individuals[i-DEFAULT_COL].addAlleleToStrand2(alleles[1]); 
+			    	}
+				}
 		    	
-		    		List<String> alleles = new ArrayList<String>(Arrays.asList(line_list.get(i).split("\\|")));
-		    		individuals[i-9].addAlleleToStrand1(alleles.get(0)); 
-		    		individuals[i-9].addAlleleToStrand2(alleles.get(1)); 
-		    	}
-		    }
-		    
-		    window.setEndIndex(index - 1);
-			windows.add(window);
+		    	index++;
+		    	line = scan.nextLine();
+				
+			} while(scan.hasNext()); 
 			
-			br.close();
+			cur_win.setEndIndex(index - 1);
+			windows.add(cur_win);
 			
+			if(anc_data) {
+				ancestral.add(anc_win);
+			}
 			
-		    // PRINT TESTS
-//		    System.out.println("INDIVIDUALS");
-//			for (int i = 0; i < individuals.length; i++)
-//			{
-//				System.out.println(i);
-//				System.out.println(individuals[i].toString());
-//			}
-//		    
-//			System.out.println("WINDOWS");
-//			System.out.println(windows.get(0).toString());
-//			System.out.println(windows.get(1).toString());
-//			for (int i = 0; i < windows.size(); i++)
-//			{
-//				System.out.println(i);
-//				System.out.println(windows.get(i).toString());
-//			}
+			//***********Testing***********
+//			PrintWriter pw = new PrintWriter(new File("indv.txt"));
+//			pw.println("Individuals: " + individuals.length);
+//			for(int i = 0; i < individuals.length; i++)
+//				pw.println(individuals[i]);
+//			pw.close();
 //			
-//			PrintWriter writer = new PrintWriter("windows.txt", "UTF-8");
+//			System.out.println("\n\nWindows: " + windows.size());
+//			for(int i = 0; i < windows.size(); i++) 
+//				System.out.println(windows.get(i));
+//			
+//			System.out.println("\n\nAncestral:" + ancestral.size());
 //			for (int i = 0; i < ancestral.size(); i++)
-//			{
-//				writer.println(ancestral.get(i).toString());
-//			}
-//			writer.close();
-			// END PRINT TESTS
+//				System.out.println(ancestral.get(i));
+			//******************************
 			
 		} catch (IOException e) {
-			String msg = "VCF file not found";
-			throw new FileParsingException(log, msg);
-		}		
+			
+		}
 	}
 	
-	public boolean validAncestralData(String info) {
+	private String[] createAltIDs(int pos, String a0, String[] alleles) {
 		
-		boolean valid = false;
-		if (info.contains("AA=")) {
-			
-			List<String> a = new ArrayList<String>(Arrays.asList(info.split("AA=")));
-			String allele = a.get(1).substring(0, 1).toUpperCase();
-			if (allele.equals("A") || allele.equals("C") || allele.equals("G") || allele.equals("T") || allele.equals("?"))
-				valid = true; 
-		}
+		String[] ids = new String[alleles.length + 1];
 		
-		return valid; 
+		for(int i = 0; i < alleles.length; i++) 
+			ids[i] = chr + ":" + pos + ":" + a0 + ":" + alleles[i];
+		
+		ids[alleles.length] = chr + ":" + pos + ":" + alleles[0] + ":" + a0 + "-ref"; 
+		
+		return ids;
+	}	
+	
+	private boolean validAncestralData(String info) {
+		
+		//return info.matches("");
+		return info.contains("AA=");
 	}
 	
-	public String ancestralAllele(List<String> line) {
+	
+	private String getAncestralAllele(String[] ln) {
 		
-		List<String> info = new ArrayList<String>(Arrays.asList(line.get(7).split("AA=")));
-		String allele = info.get(1).substring(0, 1).toUpperCase();
-		
-		if (allele.equals("?")) {
-			
-			List<String> a = new ArrayList<String>(Arrays.asList(info.get(1).substring(2).split("\\|")));
-			if (a.get(0).length() < a.get(1).length() || a.get(0) == "-") { //if ancestral version is shorter
-				
-				if (line.get(3).length() < line.get(4).length()) //return min(a0, a1)
-					return line.get(3); 
-				else
-					return line.get(4); 
-			}
-			else { //if ancestral version is longer
-
-				if (line.get(3).length() > line.get(4).length()) //return max(a0, a1)
-					return line.get(3);
-				else
-					return line.get(4);
-			}
+		String[] info_arr = ln[7].split(";");
+		String aa = "";
+		for(int i = 0; i < info_arr.length; i++) {
+			if(info_arr[i].contains("AA="))
+				aa = info_arr[i];
 		}
-		else
-			return allele;
+		
+		aa = aa.substring(3);
+		System.out.println(aa);
+		String[] aa_arr = aa.split("\\|");
+		for(int i = 0; i < aa_arr.length; i++)
+			System.out.print(aa_arr[i] + "\t");
+		System.out.println();
+		
+		if(aa_arr[0].equals("?") || aa_arr[0].length() > 1) {
+			//if the ancestral indel allele is shorter than derived allele
+			if(aa_arr[1].length() < aa_arr[2].length() || aa_arr[1].equals("-")) {
+				System.out.println("smaller\t" + ln[3] + "\t" + ln[4]);
+				if(ln[3].length() < ln[4].length())
+					return ln[3].toUpperCase();
+				else
+					return ln[4].toUpperCase();
+			}
+			//if the ancestral indel allele is longer than the derived allele
+			else {
+				System.out.println("bigger\t" + ln[3] + "\t" + ln[4]);
+				if(ln[3].length() > ln[4].length())
+					return ln[3].toUpperCase();
+				else
+					return ln[4].toUpperCase();
+			}
+		} 
+		
+		System.out.println("here: " + aa_arr[0]);
+		return aa_arr[0].toUpperCase();
 	}
 	
 	public List<Window> getWindows() {

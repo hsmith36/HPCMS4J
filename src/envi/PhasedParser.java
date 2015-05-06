@@ -89,11 +89,11 @@ public class PhasedParser {
 			String[] line_arr = line.split("\\s+");
 			pos = Integer.parseInt(line_arr[1]);//May want to catch this error and fix it with my own error
 			
-			if(pos > (st_pos + win_size)) {
+			if(pos >= (st_pos + win_size)) {
 				if(!cur_win.equals(new Window()))
 					all_win.add(cur_win);
 				
-				while (pos > (st_pos + win_size)) {
+				while (pos >= (st_pos + win_size)) {
 					st_pos += win_size;
 					end_pos += win_size;
 				}

@@ -198,12 +198,12 @@ public class Individual implements Serializable {
 		sb.append("\tStrand1 [");
 		for(int i = 0; i < str1_index; i++) 
 			sb.append(getStrand1Allele(i));
-		sb.append("]\n");
+		sb.append("] size=" + str1_index + "\n");
 		
 		sb.append("\tStrand2 [");
 		for(int i = 0; i < str2_index; i++) 
 			sb.append(getStrand2Allele(i));
-		sb.append("]\n");
+		sb.append("] size=" + str2_index + "\n");
 		
 		return sb.toString();
 	}
