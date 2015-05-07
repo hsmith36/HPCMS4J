@@ -134,13 +134,18 @@ public class Analyzer {
 		SimDist[] neutral_sim = sp.getNeutralSimulations();
 		SimDist[] select_sim = sp.getSelectedSimulations();
 		
+		System.out.println("Calculating Product and Mean of Scores");
 		for(int i = 0; i < all_ws.size(); i++) {
 			WindowStats cur_ws = all_ws.get(i);
 			calcCmsScores(cur_ws, neutral_sim, select_sim);//pass simulations too
 		}
+		
+		System.out.println("Analysis Finished");
 	}
 	
 	public void writeStats() throws FileParsingException {
+		
+		System.out.println("Writing Data");
 		
 		try {
 			out_dir = new File(out_dir.getAbsolutePath() + File.separator + "final_out");
