@@ -77,7 +77,9 @@ public class VcfParser {
 		    int index = 0;
 		    int pos = 0;
 		    
-			do {
+		    while(scan.hasNext()) {
+		    	
+		    	line = scan.nextLine();
 				String[] ln = line.split("\\s+");
 				pos = Integer.parseInt(ln[1]);
 				
@@ -172,9 +174,9 @@ public class VcfParser {
 				}
 		    	
 		    	index++;
-		    	line = scan.nextLine();
+		    	
 				
-			} while(scan.hasNext()); 
+			}  
 			
 			cur_win.setEndIndex(index - 1);
 			windows.add(cur_win);
