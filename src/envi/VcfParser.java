@@ -186,13 +186,13 @@ public class VcfParser {
 			}
 			
 			//***********Testing***********
-			if(anc_data) {
-				PrintWriter pw = new PrintWriter(new File("indv.txt"));
-				pw.println("Individuals: " + individuals.length);
-				for(int i = 0; i < individuals.length; i++)
-					pw.println(individuals[i]);
-				pw.close();
-				
+//			if(anc_data) {
+//				PrintWriter pw = new PrintWriter(new File("indv.txt"));
+//				pw.println("Individuals: " + individuals.length);
+//				for(int i = 0; i < individuals.length; i++)
+//					pw.println(individuals[i]);
+//				pw.close();
+//				
 //				System.out.println("\n\nWindows: " + windows.size());
 //				for(int i = 0; i < windows.size(); i++) 
 //					System.out.println(windows.get(i));
@@ -200,7 +200,7 @@ public class VcfParser {
 //				System.out.println("\n\nAncestral:" + ancestral.size());
 //				for (int i = 0; i < ancestral.size(); i++)
 //					System.out.println(ancestral.get(i));
-			}
+//			}
 			//******************************
 			
 		} catch (IOException e) {
