@@ -84,8 +84,10 @@ public class VcfParser {
 				pos = Integer.parseInt(ln[1]);
 				
 				if(pos >= (start_pos + win_size)) {
-					if(!cur_win.equals(new Window()))
+					if(!cur_win.equals(new Window())) {
+						cur_win.setEndIndex(index - 1);
 						windows.add(cur_win);
+					}
 					
 					if(anc_data && !anc_win.equals(new Window()))
 						ancestral.add(anc_win);
@@ -95,11 +97,11 @@ public class VcfParser {
 						end_pos += win_size;
 					}
 					
-					cur_win.setEndIndex(index - 1);
+//					cur_win.setEndIndex(index - 1);
 		    		cur_win = new Window(start_pos, end_pos, index);
 		    		
 		    		if (anc_data) {
-		    			anc_win.setEndIndex(index - 1);
+//		    			anc_win.setEndIndex(index - 1);
 			    		anc_win = new Window(start_pos, end_pos, index);
 		    		}
 				}
@@ -155,7 +157,7 @@ public class VcfParser {
 								individuals[i-DEFAULT_COL].addAlleleToStrand2(false);
 						}
 						
-						index += alt_alleles.length;
+						index += alt_alleles.length + 1;
 					}
 				}
 				else {
@@ -171,11 +173,9 @@ public class VcfParser {
 			    		individuals[i-DEFAULT_COL].addAlleleToStrand1(alleles[0]); 
 			    		individuals[i-DEFAULT_COL].addAlleleToStrand2(alleles[1]); 
 			    	}
+			    	
+			    	index++;
 				}
-		    	
-		    	index++;
-		    	
-				
 			}  
 			
 			cur_win.setEndIndex(index - 1);

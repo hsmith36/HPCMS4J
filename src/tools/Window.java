@@ -169,7 +169,8 @@ public class Window implements Serializable {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Window [st_pos=" + st_pos + ", end_pos=" + end_pos 
-				+ ", st_index=" + st_index + ", end_index=" + end_index + "]\n");
+				+ ", st_index=" + st_index + ", end_index=" + end_index + "] " 
+				+ "size=" + all_snps.size() + "\n");
 		
 		for(int i = 0; i < all_snps.size(); i++) {
 			sb.append("\t" + all_snps.get(i).toString() + "\n");
