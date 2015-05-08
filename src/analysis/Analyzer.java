@@ -217,6 +217,8 @@ public class Analyzer {
 		win_scores_mean = normalizeData(win_scores_mean);
 		for(SNP key : win_scores_mean.keySet())
 			cms_scores_mean.put(key, win_scores_mean.get(key));
+		
+		//TODO: analyze level of selection in entire window
 	}
 	
 	private Double calcMeanCMS(SNP cur_snp, 

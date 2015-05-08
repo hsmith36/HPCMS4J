@@ -35,18 +35,12 @@ public class StatsCalc {
 			System.exit(0);
 		}
 		
+		int chr = -1;
+		int win_num = -1;
 		try {
 			
-			int chr = Integer.parseInt(args[1]);
-			int win_num = Integer.parseInt(args[2]);
-			
-			Log log = new Log(Log.type.stat, out_dir.getName());
-			
-			StatsCalc sc = new StatsCalc(out_dir, chr, win_num, log);
-			sc.runStats();
-			
-			log.addLine(win_num + "\tSuccessfulRun\twindow completed without any errors");
-			log.close();
+			chr = Integer.parseInt(args[1]);
+			win_num = Integer.parseInt(args[2]);
 			
 		} catch(NumberFormatException e) {
 			
@@ -58,6 +52,23 @@ public class StatsCalc {
 			
 			System.exit(0);
 		}
+		
+		Log log = new Log(Log.type.stat, out_dir.getName());
+		try {
+			
+			StatsCalc sc = new StatsCalc(out_dir, chr, win_num, log);
+			sc.runStats();
+			
+			log.addLine(win_num + "\tSuccessfulRun\twindow completed without any errors");
+			log.close();
+			
+		 } catch(OutOfMemoryError e) {
+			 
+			 log.addLine(win_num + "\tNoMemoryError\tinsufficient memory for running this window");
+			 log.close();
+			 
+			 System.exit(0);
+		 }
 	}
 	
 	private static int WAIT_TIME = 50;
