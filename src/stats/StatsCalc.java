@@ -55,6 +55,7 @@ public class StatsCalc {
 		
 		Log log = new Log(Log.type.stat, out_dir.getName());
 		try {
+			System.out.println("Running window: " + win_num);
 			
 			StatsCalc sc = new StatsCalc(out_dir, chr, win_num, log);
 			sc.runStats();

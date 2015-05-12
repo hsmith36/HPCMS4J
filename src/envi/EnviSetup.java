@@ -25,6 +25,13 @@ public class EnviSetup {
 		
 		try {
 			args = setupArgs(args, log);
+			
+			String select_logo = " ____       _          _____ \n"
+					+ "/ ___|  ___| | ___  __|_   _|\n"
+					+ "\\___ \\ / _ \\ |/ _ \\/ __|| |  \n"
+					+ " ___) |  __/ |  __/ (__ | |  \n"
+					+ "|____/ \\___|_|\\___|\\___||_|  \n";
+			System.out.println(select_logo);
 		
 			SetupDriver dv = new SetupDriver(args, log);
 			dv.runSetup();
