@@ -216,7 +216,7 @@ public class VcfParser {
 		for(int i = 0; i < alleles.length; i++) 
 			ids[i] = chr + ":" + pos + ":" + a0 + ":" + alleles[i];
 		
-		ids[alleles.length] = chr + ":" + pos + ":" + alleles[0] + ":" + a0 + "-ref"; 
+		ids[alleles.length] = "REF-" + chr + ":" + pos + ":" + alleles[0] + ":" + a0; 
 		
 		return ids;
 	}	

@@ -90,6 +90,7 @@ public class XPEHH extends HaplotypeTests {
 			
 //			Date date = new Date();
 //			log.addLine("\tCORE_" + core_snp + "\t" + new Timestamp(date.getTime()));//*******KEY TRACKER TEST****************
+//			System.out.print("CORE_" + core_snp);
 			
 			//calculate EHH scores for the combined populations (tp with xp)
 			EHH comb_ehh = getCombinedEHH(all_indv, core_snp);
@@ -108,6 +109,7 @@ public class XPEHH extends HaplotypeTests {
 					//main XPEHH function; unstandardized
 					double unstd_XPEHH = Math.log(tp_integral / xp_integral);
 					
+//					System.out.println("\tFINAL=" + unstd_XPEHH);
 					//saving both the successful XPEHH SNP and unstandardized XPEHH value
 					all_XPEHH_snps.add(core_snp);
 					all_unstd_XPEHH.add(unstd_XPEHH);
@@ -120,7 +122,9 @@ public class XPEHH extends HaplotypeTests {
 			else {
 //				System.out.println("Insignificant " + last_ehh);
 				unused_snps.add(core_snp);
-			}	
+			}
+			
+			
 		}
 		
 		//calculating and saving all standardized XPEHH values

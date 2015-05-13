@@ -62,7 +62,8 @@ public class SNP implements Comparable<SNP>, Serializable {
 		//ensures the allele values aren't switched
 		if(s.getPosition() == pos
 				&& s.getAllele0().equals(a1)
-				&& s.getAllele1().equals(a0)) {
+				&& s.getAllele1().equals(a0)
+				&& !s.getSnpID().contains("REF")) {
 			return true;
 		}
 		

@@ -83,9 +83,10 @@ public class EHH {
 //		System.out.println("\n\nCORE_" + core_snp);
 		
 		//Boundary position check for EHH calculation
+		SNP nxt_snp = new SNP();
 		while(isValidPosition(end_pos, last_snp.getPosition())) {
 			
-			SNP nxt_snp = getClosestSNP();
+			nxt_snp = getClosestSNP(nxt_snp);
 			
 //			System.out.println("\t" + nxt_snp);
 			
@@ -140,9 +141,10 @@ public class EHH {
 //		System.out.println("\n\nCORE_" + core_snp);
 		
 		//Significance check of EHH value
+		SNP nxt_snp = new SNP();
 		while(cur_ehh_value > ehh_cutoff) { 
 			
-			SNP nxt_snp = getClosestSNP();
+			nxt_snp = getClosestSNP(nxt_snp);
 //			System.out.println("\t" + nxt_snp);
 			
 			//=========FOR TESTING==========
@@ -150,6 +152,7 @@ public class EHH {
 				
 //				log.addLine("\t*Warning: CORE_" + core_snp + " has duplicate data");
 //				log.addLine("\t\t-Unexpected duplicate with " + nxt_snp);
+				System.out.println("\ttest list error: " + nxt_snp);
 				return false;
 			}
 			else
@@ -157,10 +160,14 @@ public class EHH {
 			//=============================
 			
 			
-			if(nxt_snp == null)
+			if(nxt_snp == null) {
+//				System.out.print("\tnext SNP error");
 				return false;
+			}
 			
 			if(Math.abs(nxt_snp.getPosition() - core_snp.getPosition()) > MAX_DISTANCE) {
+				
+//				System.out.println("\tmax dist error");
 //				log.addLine("\tWarning: CORE_" + core_snp + " could not calculate ehh value");
 				return false;
 			}
@@ -319,10 +326,10 @@ public class EHH {
 		return updated_group;
 	}
 	
-	private SNP getClosestSNP() {
+	private SNP getClosestSNP(SNP prev_snp) {
 		
-		SNP temp_dwnstrm_snp = getNextDownstreamSNP();
-		SNP temp_upstrm_snp = getNextUpstreamSNP();
+		SNP temp_dwnstrm_snp = getNextDownstreamSNP(prev_snp);
+		SNP temp_upstrm_snp = getNextUpstreamSNP(prev_snp);
 		
 		int dwnstrm_snp_length = -1;
 		if(temp_dwnstrm_snp != null)
@@ -373,7 +380,7 @@ public class EHH {
 		return dwnstrm_snp;
 	}
 	
-	private SNP getNextDownstreamSNP() {
+	private SNP getNextDownstreamSNP(SNP prev_snp) {
 		
 		//to skip this function if you have reached the boundary of the chr
 		if(dwnstrm_snp == null || dwnstrm_win == null)
@@ -381,6 +388,16 @@ public class EHH {
 		
 		SNP nxt_dwn_snp = new SNP();
 		int nxt_index = dwnstrm_win.getSnpIndex(dwnstrm_snp) - 1;
+		
+//		//NEW
+//		if(nxt_index == dwnstrm_win.getSnpIndex(prev_snp)) {
+//			System.out.print(" here_dwn");
+//		}
+//		SNP test = new SNP(39531200, "C", "T", "21:39531200:C:T");
+//		if(dwnstrm_win.containsIndex(nxt_index) && dwnstrm_win.getSNP(nxt_index).sameAs(test)) {
+//			System.out.print("dwn_FINALLY!!!");
+//		}
+//		//
 		
 		if(dwnstrm_win.containsIndex(nxt_index))
 			nxt_dwn_snp = dwnstrm_win.getSNP(nxt_index);
@@ -400,7 +417,7 @@ public class EHH {
 		return nxt_dwn_snp;
 	}
 	
-	private SNP getNextUpstreamSNP() {
+	private SNP getNextUpstreamSNP(SNP prev_snp) {
 		
 		//to skip this function if you have reached the boundary of the chr
 		if(upstrm_snp == null || upstrm_win == null)
@@ -408,6 +425,16 @@ public class EHH {
 		
 		SNP nxt_up_snp = new SNP();
 		int nxt_index = upstrm_win.getSnpIndex(upstrm_snp) + 1;
+		
+//		//NEW
+//		if(nxt_index == upstrm_win.getSnpIndex(prev_snp)) {
+//			System.out.print(" here_up");
+//		}
+//		SNP test = new SNP(39531200, "C", "T", "21:39531200:C:T");
+//		if(upstrm_win.containsIndex(nxt_index) && upstrm_win.getSNP(nxt_index).sameAs(test)  ) {
+//			System.out.print("\tnxt_index=" + upstrm_win.getSNP(nxt_index) + " prev_index=" + prev_snp);
+//		}
+//		//===
 		
 		if(upstrm_win.containsIndex(nxt_index))
 			nxt_up_snp = upstrm_win.getSNP(nxt_index);

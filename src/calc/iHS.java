@@ -84,8 +84,10 @@ public class iHS extends HaplotypeTests {
 		for(int i = 0; i < win.getSNPs().size(); i++) {
 			
 //			log.addLine("\tCORE_" + win.getSNPs().get(i));
-//			System.out.println("CORE_" + win.getSNPs().get(i));
+			System.out.print("CORE_" + win.getSNPs().get(i));
 			Double unstd_iHS = getUnstandardizedIHS(win.getSNPs().get(i), (st_index + i));
+			
+			System.out.println("\tFINAL=" + unstd_iHS);
 			
 			//saving the successful unstandardized iHS 
 			if(unstd_iHS != null)
@@ -168,6 +170,8 @@ public class iHS extends HaplotypeTests {
 			
 			if(anc_eh.size() <= 1 || der_eh.size() <= 1) {
 				//No variance and thus no EHH pattern can be found
+				
+				System.out.print("\tno variance");
 				unused_snps.add(core_snp);
 				return null;
 			}
@@ -182,8 +186,10 @@ public class iHS extends HaplotypeTests {
 			//Running Ancestral Analysis
 //			long t1 = System.nanoTime();
 			significant = anc_ehh.calcSignificantEhhValues();
-			if(!significant)
+			if(!significant) {
+				System.out.print("\tinsig anc");
 				return null;
+			}
 			
 			double[] ehh_values_anc = anc_ehh.getEhhValues();
 			int[] ehh_pos_anc = anc_ehh.getEhhPositions();
@@ -191,8 +197,10 @@ public class iHS extends HaplotypeTests {
 			
 			//Running Derived Analysis
 			significant = der_ehh.calcSignificantEhhValues();
-			if(!significant)
+			if(!significant) {
+				System.out.print("\tinsig der");
 				return null;
+			}
 			
 			double[] ehh_values_der = der_ehh.getEhhValues();
 			int[] ehh_pos_der = der_ehh.getEhhPositions();
@@ -210,19 +218,22 @@ public class iHS extends HaplotypeTests {
 			unstd_iHS = Math.log(anc_ihh / der_ihh);
 		}
 		else {
-			//No variance and thus no EHH pattern can be found
+			
+			System.out.print("\tno anc allele");
 			unused_snps.add(core_snp);
 			return null;
 		}
 		
 		if(Double.isNaN(unstd_iHS) || Double.isInfinite(unstd_iHS)) {
-			//Error in calculating iHS
+			
+			System.out.print("\tNaN or Inf");
 			unused_snps.add(core_snp);
 			return null;
 		}
 		
 		//saving the successful iHS SNP
 		all_iHS_snp.add(core_snp);
+		System.out.print("\tsuccess!!!");
 		return unstd_iHS;
 	}
 	
