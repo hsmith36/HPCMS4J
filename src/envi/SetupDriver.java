@@ -36,7 +36,7 @@ public class SetupDriver {
 	
 	//directories and files for accessing and writing data
 	private File data_dir;
-	private File map_file;
+	private File map_dir;
 	private File out_dir;
 	
 	//target population variables (tp)
@@ -250,6 +250,7 @@ public class SetupDriver {
 		String ph_op_path = getPhasedPath(data_dir, PHASED_TYPE, chr, o_pop);
 		
 		String anc_path = getAncestralPath(data_dir, chr);
+		String map_path = getMapPath(map_dir, chr);
 		
 		if(lg_tp_path.equals(lg_xp_path) && lg_tp_path.equals(lg_op_path))
 			run_intersect = false;
@@ -258,7 +259,7 @@ public class SetupDriver {
 		PhasedParser tp_pp = new PhasedParser(lg_tp_path, ph_tp_path, log);
 		PhasedParser xp_pp = new PhasedParser(lg_xp_path, ph_xp_path, log);
 		PhasedParser op_pp = new PhasedParser(lg_op_path, ph_op_path, log);
-		MapParser mp = new MapParser(map_file, log);
+		MapParser mp = new MapParser(map_path, log);
 		AncestralParser ap = new AncestralParser(anc_path, chr, log);
 		
 		//========Import Phased Data===========
@@ -283,6 +284,8 @@ public class SetupDriver {
 		String xp_vcf_path = getPhasedPath(data_dir, VCF_TYPE, chr, x_pop);
 		String op_vcf_path = getPhasedPath(data_dir, VCF_TYPE, chr, o_pop);
 		
+		String map_path = getMapPath(map_dir, chr);
+		
 		//=====Run Parsers and Save Data=======
 		VcfParser tp_vp = new VcfParser(tp_vcf_path, chr, log);
 		tp_vp.parseVCF(win_size, true);
@@ -299,7 +302,7 @@ public class SetupDriver {
 		op_wins = op_vp.getWindows();
 		op_indv = op_vp.getIndividuals();
 		
-		MapParser mp = new MapParser(map_file, log);
+		MapParser mp = new MapParser(map_path, log);
 		
 		//=======Import Environment Data========
 		gm = mp.parseGeneMap();
@@ -351,6 +354,25 @@ public class SetupDriver {
 		throw new UnknownFileException(log, dir, msg);
 	}
 	
+	private String getMapPath(File dir, int chr) 
+			throws UnknownFileException {
+		
+		String chr_check = "chr" + chr + "_";
+		
+		String[] all_files = dir.list();
+		
+		for(int i = 0; i < all_files.length; i++) {
+			
+			String file_name = all_files[i];
+			if(file_name.contains(chr_check)
+					&& file_name.charAt(0) != '.')
+				return dir.getAbsolutePath() + File.separator + file_name;
+		}
+		
+		String msg = "the issue is with your map data";
+		throw new UnknownFileException(log, dir, msg);
+	}
+	
 	private boolean containsVCF(File dir) {
 		String[] all_files = dir.list();
 		
@@ -373,8 +395,8 @@ public class SetupDriver {
 		}
 		log.add(".");
 		
-		map_file = new File(args[1]);
-		if(!map_file.isFile()) {
+		map_dir = new File(args[1]);
+		if(!map_dir.isDirectory()) {
 			String msg = "Error: Map file path does not exist";
 			throw new IllegalInputException(log, msg);
 		}

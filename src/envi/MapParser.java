@@ -18,17 +18,19 @@ public class MapParser {
 	private Scanner map_scan;
 	private Log log;
 	
-	public MapParser(File map_file, Log log) throws FileParsingException {
+	public MapParser(String map_file, Log log) throws FileParsingException {
 		
-		this.map_path = map_file.getAbsolutePath();
+		this.map_path = map_file;
 		this.log = log;
 		
 		skip_first_line = false;
 		
 		try {
-			map_scan = new Scanner(map_file);
+			File file = new File(map_path);
+			map_scan = new Scanner(file);
+			
 		} catch (FileNotFoundException e) {
-			String msg = "Error: Genetic Map file not found in the /Map directory";
+			String msg = "Error: Genetic Map file not found in the map directory";
 			throw new FileParsingException(log, msg);
 		}
 	}

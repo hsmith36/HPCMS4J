@@ -37,8 +37,8 @@ public class EnviSetup {
 			dv.runSetup();
 			
 			System.out.println("Setup Finished");
-			log.addLine("Your environment has been successfully set up. Go to api "
-					+ "for information about how to run stats analysis");
+			log.addLine("\n\nYour environment has been set up successfully!");
+			log.addLine("Phase one of SelecT is complete.");
 			
 		} catch (Exception e) {
 			
@@ -61,7 +61,7 @@ public class EnviSetup {
 	
 		log.addLine("Working Parameters");
 		log.addLine("Data Dir:\t\t" + args[0]);
-		log.addLine("Map File:\t\t" + args[1]);
+		log.addLine("Map Dir:\t\t" + args[1]);
 		log.addLine("Envi Output Dir:\t" + args[2]);
 		log.addLine("Target Pop:\t\t" + args[3]);
 		log.addLine("Cross Pop:\t\t" + args[4]);
