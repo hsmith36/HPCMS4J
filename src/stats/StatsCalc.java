@@ -155,21 +155,21 @@ public class StatsCalc {
 			Thread.sleep(WAIT_TIME);
 			i_thrd.start();
 			
-//			StatsThread h_thrd = new StatsThread(h, lock);
-//			Thread.sleep(WAIT_TIME);
-//			h_thrd.start();
-//			
-//			StatsThread x_thrd = new StatsThread(x, lock);
-//			Thread.sleep(WAIT_TIME);
-//			x_thrd.start();
-//			
-//			StatsThread d_thrd = new StatsThread(d, lock);
-//			Thread.sleep(WAIT_TIME);
-//			d_thrd.start();
-//			
-//			StatsThread f_thrd = new StatsThread(f, lock); 
-//			Thread.sleep(WAIT_TIME);
-//			f_thrd.start();
+			StatsThread h_thrd = new StatsThread(h, lock);
+			Thread.sleep(WAIT_TIME);
+			h_thrd.start();
+			
+			StatsThread x_thrd = new StatsThread(x, lock);
+			Thread.sleep(WAIT_TIME);
+			x_thrd.start();
+			
+			StatsThread d_thrd = new StatsThread(d, lock);
+			Thread.sleep(WAIT_TIME);
+			d_thrd.start();
+			
+			StatsThread f_thrd = new StatsThread(f, lock); 
+			Thread.sleep(WAIT_TIME);
+			f_thrd.start();
 			
 			//StatsThread t_thrd = new StatsThread(t, lock);
 			//Thread.sleep(WAIT_TIME);
@@ -179,13 +179,13 @@ public class StatsCalc {
 			//Thread.sleep(WAIT_TIME);
 			//new_thrd.start();
 			
-//			synchronize(i_thrd, h_thrd, x_thrd, d_thrd, f_thrd);//add t_thrd
+			synchronize(i_thrd, h_thrd, x_thrd, d_thrd, f_thrd);//add t_thrd
 			
-//			i = (iHS) i_thrd.getTest();
-//			h = (iHH) h_thrd.getTest();
-//			x = (XPEHH) x_thrd.getTest();
-//			d = (dDAF) d_thrd.getTest();
-//			f = (Fst) f_thrd.getTest();
+			i = (iHS) i_thrd.getTest();
+			h = (iHH) h_thrd.getTest();
+			x = (XPEHH) x_thrd.getTest();
+			d = (dDAF) d_thrd.getTest();
+			f = (Fst) f_thrd.getTest();
 			//t = (TajD) t_thrd.getTest();
 			//new = (NewStat) new_thrd.getTest();
 		
