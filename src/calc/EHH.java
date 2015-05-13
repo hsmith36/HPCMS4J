@@ -152,7 +152,7 @@ public class EHH {
 				
 //				log.addLine("\t*Warning: CORE_" + core_snp + " has duplicate data");
 //				log.addLine("\t\t-Unexpected duplicate with " + nxt_snp);
-				System.out.println("\ttest list error: " + nxt_snp);
+				System.out.print("\ttest list error: " + nxt_snp);
 				return false;
 			}
 			else
