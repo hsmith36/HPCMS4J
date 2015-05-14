@@ -76,8 +76,6 @@ public class iHH extends HaplotypeTests {
 	@Override
 	public void runStat() {
 		
-//		System.out.println("Starting iHH Analysis");
-		
 		//Starting iHH Analysis
 		int st_index = win.getStIndex();
 		for(int i = 0; i < win.getSNPs().size(); i++) {
@@ -108,7 +106,7 @@ public class iHH extends HaplotypeTests {
 	
 	@Override
 	public void printStats() {
-//		===============Default Printout===================
+		
 		System.out.println("\nShowing iHH Data");
 		for(int i = 0; i < all_std_iHH.size(); i++) {
 			System.out.print("iHH =\t");
@@ -195,13 +193,13 @@ public class iHH extends HaplotypeTests {
 			unstd_iHH = Math.abs(anc_ihh - der_ihh);
 		}
 		else {
-			//No variance and thus no EHH pattern can be found
+			//No ancestral allele for proper comparison
 			unused_snps.add(core_snp);
 			return null;
 		}
 		
 		if(Double.isNaN(unstd_iHH) || Double.isInfinite(unstd_iHH)) {
-			//Error in calculating iHH
+			//Irregular iHH values
 			unused_snps.add(core_snp);
 			return null;
 		}

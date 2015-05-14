@@ -44,6 +44,7 @@ public class MapParser {
 	 * 				range on the chromosome and a value equal to combined rate
 	 * 				of recombination (cM/Mb)
 	 */
+	@SuppressWarnings("unused")
 	public GeneticMap parseGeneMap() throws FileParsingException {
 		log.addLine("Importing genetic map from " + map_path);
 		

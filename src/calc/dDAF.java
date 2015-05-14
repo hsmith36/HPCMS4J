@@ -49,8 +49,7 @@ public class dDAF extends HaplotypeTests {
 	@Override
 	public void runStat() {
 		
-//		System.out.println("Starting DAF Analysis");
-		
+		//Starting dDAF Analysis
 		Individual[] all_xo_indv = combineIndvArrays(xp_ino_indv, op_inx_indv);
 		
 		List<SNP> win_snps = tp_win.getSNPs();
@@ -61,6 +60,7 @@ public class dDAF extends HaplotypeTests {
 			
 			if(checkValidSnpComparison(core_snp, anc_snp)) {
 				
+				//Get proper intersected window for cross and outgroup populations
 				Window xo_win = getEquivalentWindow(xoin_wins, tp_win);
 				if(xo_win != null && xo_win.containsSNP(core_snp)) {
 				
@@ -90,8 +90,10 @@ public class dDAF extends HaplotypeTests {
 					all_delta_DAF.add(delta_daf);
 				}
 			}
-			else
+			else {
+				//No ancestral allele for proper comparison
 				unused_snps.add(core_snp);
+			}
 		}
 		
 //		printStats();
@@ -110,7 +112,7 @@ public class dDAF extends HaplotypeTests {
 	
 	@Override
 	public void printStats() {
-//		===============Default Printout===================
+		
 		System.out.println("\nShowing DAF Data");
 		for(int i = 0; i < all_delta_DAF.size(); i++) {
 			System.out.print("DAF =\t");

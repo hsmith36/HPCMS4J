@@ -1,10 +1,8 @@
 package tools;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 public class WindowStats {
 	
@@ -84,7 +82,6 @@ public class WindowStats {
 		return all_snps.size();
 	}
 	
-	//TODO: test what happens when you try to access a value that is right at the boarder of the end_pos
 	public int getNextPosition(int prev_pos) {
 		
 		int nxt_pos = end_pos;
@@ -98,10 +95,8 @@ public class WindowStats {
 		//nxt_pos = comparePositions(nxt_pos, prev_pos, tajd_snps);
 		//nxt_pos = comparePositions(nxt_pos, prev_pos, new_snps);
 		
-		if(nxt_pos == prev_pos) {//check this...
-			//at end
+		if(nxt_pos == prev_pos)
 			return -1;
-		}
 		
 		return nxt_pos;
 	}

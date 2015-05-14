@@ -74,13 +74,11 @@ public class EHH {
 		
 		test_list = new ArrayList<SNP>();
 		
-		//This is the EHH denominator
+		//This is the EHH eqn denominator
 		int ct_comb_2 = combineSetBy2(all_haplo);
 		
 		all_ehh_values.add(1.0);
 		all_ehh_positions.add(core_snp.getPosition());
-		
-//		System.out.println("\n\nCORE_" + core_snp);
 		
 		//Boundary position check for EHH calculation
 		SNP nxt_snp = new SNP();
@@ -88,26 +86,23 @@ public class EHH {
 			
 			nxt_snp = getClosestSNP(nxt_snp);
 			
-//			System.out.println("\t" + nxt_snp);
-			
 			//=========FOR TESTING==========
 			if(test_list.contains(nxt_snp)) {
-				
-//				log.addLine("\t*Warning: CORE_" + core_snp + " has duplicate data");
-//				log.addLine("\t\t-Unexpected duplicate with " + nxt_snp);
+				System.out.println("*Warning: CORE_" + core_snp + " has unexpected duplicate data");
+				System.out.println("\t-Unexpected duplicate with " + nxt_snp);
 				return false;
 			}
 			else
 				test_list.add(nxt_snp);
 			//=============================
 			
+			//both boundaries are hit; not enough variance for significance
 			if(nxt_snp == null)
 				return false;
 			
-			if(Math.abs(nxt_snp.getPosition() - core_snp.getPosition()) > MAX_DISTANCE) {
-//				log.addLine("\tWarning: CORE_" + core_snp + " could not calculate ehh value");
+			//a 3Mb max distance enforced (bigger bounds are unlikely to have significant LD)
+			if(Math.abs(nxt_snp.getPosition() - core_snp.getPosition()) > MAX_DISTANCE)
 				return false;
-			}
 			
 			//incorporates the new SNP into all extended haplotypes (increase length by 1)
 			group = createNewExtHaploGroup(nxt_snp);
@@ -132,45 +127,35 @@ public class EHH {
 		
 		test_list = new ArrayList<SNP>();
 		
-		//This is the EHH denominator
+		//This is the EHH eqn denominator
 		int ct_comb_2 = combineSetBy2(all_haplo); 
 		
 		all_ehh_values.add(1.0);
 		all_ehh_positions.add(core_snp.getPosition());
-		
-//		System.out.println("\n\nCORE_" + core_snp);
 		
 		//Significance check of EHH value
 		SNP nxt_snp = new SNP();
 		while(cur_ehh_value > ehh_cutoff) { 
 			
 			nxt_snp = getClosestSNP(nxt_snp);
-//			System.out.println("\t" + nxt_snp);
 			
 			//=========FOR TESTING==========
 			if(test_list.contains(nxt_snp)) {
-				
-//				log.addLine("\t*Warning: CORE_" + core_snp + " has duplicate data");
-//				log.addLine("\t\t-Unexpected duplicate with " + nxt_snp);
-				System.out.print("\ttest list error: " + nxt_snp);
+				System.out.println("*Warning: CORE_" + core_snp + " has unexpected duplicate data");
+				System.out.println("\t-Unexpected duplicate with " + nxt_snp);
 				return false;
 			}
 			else
 				test_list.add(nxt_snp);
 			//=============================
 			
-			
-			if(nxt_snp == null) {
-//				System.out.print("\tnext SNP error");
+			//both boundaries are hit; not enough variance for significance
+			if(nxt_snp == null)
 				return false;
-			}
 			
-			if(Math.abs(nxt_snp.getPosition() - core_snp.getPosition()) > MAX_DISTANCE) {
-				
-//				System.out.println("\tmax dist error");
-//				log.addLine("\tWarning: CORE_" + core_snp + " could not calculate ehh value");
+			//a 3Mb max distance enforced (bigger bounds are unlikely to have significant LD)
+			if(Math.abs(nxt_snp.getPosition() - core_snp.getPosition()) > MAX_DISTANCE) 
 				return false;
-			}
 			
 			//incorporates the new SNP into all extended haplotypes (increase length by 1)
 			group = createNewExtHaploGroup(nxt_snp);
@@ -389,16 +374,6 @@ public class EHH {
 		SNP nxt_dwn_snp = new SNP();
 		int nxt_index = dwnstrm_win.getSnpIndex(dwnstrm_snp) - 1;
 		
-//		//NEW
-//		if(nxt_index == dwnstrm_win.getSnpIndex(prev_snp)) {
-//			System.out.print(" here_dwn");
-//		}
-//		SNP test = new SNP(39531200, "C", "T", "21:39531200:C:T");
-//		if(dwnstrm_win.containsIndex(nxt_index) && dwnstrm_win.getSNP(nxt_index).sameAs(test)) {
-//			System.out.print("dwn_FINALLY!!!");
-//		}
-//		//
-		
 		if(dwnstrm_win.containsIndex(nxt_index))
 			nxt_dwn_snp = dwnstrm_win.getSNP(nxt_index);
 		else {
@@ -425,16 +400,6 @@ public class EHH {
 		
 		SNP nxt_up_snp = new SNP();
 		int nxt_index = upstrm_win.getSnpIndex(upstrm_snp) + 1;
-		
-//		//NEW
-//		if(nxt_index == upstrm_win.getSnpIndex(prev_snp)) {
-//			System.out.print(" here_up");
-//		}
-//		SNP test = new SNP(39531200, "C", "T", "21:39531200:C:T");
-//		if(upstrm_win.containsIndex(nxt_index) && upstrm_win.getSNP(nxt_index).sameAs(test)  ) {
-//			System.out.print("\tnxt_index=" + upstrm_win.getSNP(nxt_index) + " prev_index=" + prev_snp);
-//		}
-//		//===
 		
 		if(upstrm_win.containsIndex(nxt_index))
 			nxt_up_snp = upstrm_win.getSNP(nxt_index);

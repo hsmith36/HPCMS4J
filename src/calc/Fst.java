@@ -21,7 +21,6 @@ public class Fst extends HaplotypeTests {
 	private Individual[] op_indv;
 	
 	//Fst statistic information
-//	private List<SNP> unused_snps;
 	private List<SNP> all_Fst_snps;
 	private List<Double> all_Fst;
 	
@@ -36,7 +35,6 @@ public class Fst extends HaplotypeTests {
 		this.xp_indv = xp_int_indv;
 		this.op_indv = op_inx_indv;
 		
-//		unused_snps = new ArrayList<SNP>();
 		all_Fst_snps = new ArrayList<SNP>();
 		all_Fst = new ArrayList<Double>();
 	}
@@ -44,14 +42,14 @@ public class Fst extends HaplotypeTests {
 	@Override
 	public void runStat() {
 		
-//		System.out.println("Starting Fst Analysis");
-		
+		//Starting Fst Analysis
 		List<SNP> win_snps = win.getSNPs();
 		for(int i = 0; i < win_snps.size(); i++) {
 			
 			SNP core_snp = win_snps.get(i);
 			int index = win.getSnpIndex(core_snp);
 			
+			//Calculate frequencies
 			double tp_size = (double) tp_indv.length*2;
 			int tp_instance = getInstanceOfAllele(tp_indv, index);
 			double tp_freq = (double) tp_instance / tp_size;
@@ -66,6 +64,7 @@ public class Fst extends HaplotypeTests {
 			
 			double avg_size = (tp_size + xp_size + op_size) / (double) NUM_POPS;
 			
+			//All values are averaged between the populations
 			double sqrd_coef_var = getSqrdCoefficientOfVariation(tp_size,
 																	xp_size,
 																	op_size,
@@ -102,7 +101,7 @@ public class Fst extends HaplotypeTests {
 									avg_hetero_freq);
 			
 			//Wright's Fst
-//			double fst = sample_var / (avg_freq * (1 - avg_freq));
+			//double fst = sample_var / (avg_freq * (1 - avg_freq));
 			
 			all_Fst_snps.add(core_snp);
 			all_Fst.add(fst);
@@ -124,7 +123,7 @@ public class Fst extends HaplotypeTests {
 	
 	@Override
 	public void printStats() {
-//		===============Default Printout===================
+		
 		System.out.println("\nShowing Fst Data");
 		for(int i = 0; i < all_Fst.size(); i++) {
 			System.out.print("Fst =\t");
@@ -288,7 +287,4 @@ public class Fst extends HaplotypeTests {
 		
 		return instance;
 	}
-
-	
-
 }

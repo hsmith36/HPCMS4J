@@ -60,6 +60,7 @@ public class StatsCalc {
 			StatsCalc sc = new StatsCalc(out_dir, chr, win_num, log);
 			sc.runStats();
 			
+			System.out.println("Window complete!");
 			log.addLine(win_num + "\tSuccessfulRun\twindow completed without any errors");
 			log.close();
 			

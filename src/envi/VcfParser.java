@@ -1,12 +1,8 @@
 package envi;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
@@ -82,7 +78,13 @@ public class VcfParser {
 		    	
 		    	line = scan.nextLine();
 				String[] ln = line.split("\\s+");
+				
 				pos = Integer.parseInt(ln[1]);
+				
+				if(!isPhased(ln)) {
+					String msg = "Error: VCF file is not phased";
+					throw new FileParsingException(log, msg);
+				}
 				
 				if(pos >= (start_pos + win_size)) {
 					if(!cur_win.equals(new Window())) {
@@ -98,13 +100,10 @@ public class VcfParser {
 						end_pos += win_size;
 					}
 					
-//					cur_win.setEndIndex(index - 1);
 		    		cur_win = new Window(start_pos, end_pos, index);
 		    		
-		    		if (anc_data) {
-//		    			anc_win.setEndIndex(index - 1);
+		    		if (anc_data) 
 			    		anc_win = new Window(start_pos, end_pos, index);
-		    		}
 				}
 				
 				if(ln[4].contains(",")) {
@@ -205,8 +204,19 @@ public class VcfParser {
 			//******************************
 			
 		} catch (IOException e) {
-			
+			String msg = "Error: Could not correctly read in VCF file " + file_path;
+			throw new FileParsingException(log, msg);
 		}
+	}
+	
+	private boolean isPhased(String[] line) {
+		
+		for(int i = DEFAULT_COL; i < line.length; i++) {
+			if(line[i].contains("/"))
+				return false;
+		}
+		
+		return true;
 	}
 	
 	private String[] createAltIDs(int pos, String a0, String[] alleles) {
@@ -216,7 +226,7 @@ public class VcfParser {
 		for(int i = 0; i < alleles.length; i++) 
 			ids[i] = chr + ":" + pos + ":" + a0 + ":" + alleles[i];
 		
-		ids[alleles.length] = "REF-" + chr + ":" + pos + ":" + alleles[0] + ":" + a0; 
+		ids[alleles.length] = chr + ":" + pos + ":" + alleles[0] + ":" + a0 + "-ref"; 
 		
 		return ids;
 	}	

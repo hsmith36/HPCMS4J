@@ -76,18 +76,11 @@ public class iHS extends HaplotypeTests {
 	@Override
 	public void runStat() {
 		
-//		System.out.println("Starting iHS Analysis");
-//		log.addLine("Starting iHS Analysis on " + win.getSNPs().size() + " SNPs");
-		
 		//Starting iHS Analysis
 		int st_index = win.getStIndex();
 		for(int i = 0; i < win.getSNPs().size(); i++) {
 			
-//			log.addLine("\tCORE_" + win.getSNPs().get(i));
-			System.out.print("CORE_" + win.getSNPs().get(i));
 			Double unstd_iHS = getUnstandardizedIHS(win.getSNPs().get(i), (st_index + i));
-			
-			System.out.println("\tFINAL=" + unstd_iHS);
 			
 			//saving the successful unstandardized iHS 
 			if(unstd_iHS != null)
@@ -95,11 +88,9 @@ public class iHS extends HaplotypeTests {
 
 		}
 		
-		//calculating and saving all standardized iHS values
-		
+		//calculating and saving all standardized iHS values	
 		all_std_iHS = standardizeData(all_unstd_iHS);
-		
-		
+			
 //		printStats();
 //		logRunStats();	
 	}
@@ -116,7 +107,7 @@ public class iHS extends HaplotypeTests {
 	
 	@Override
 	public void printStats() {
-//		===============Default Printout===================	
+		
 		System.out.println("\nShowing iHS Data");
 		for(int i = 0; i < all_std_iHS.size(); i++) {
 			System.out.print("iHS =\t");
@@ -168,10 +159,8 @@ public class iHS extends HaplotypeTests {
 			//Initial Grouping (according to ancestral or derived type)
 			setHaplotypeGroups(anc_eh, der_eh, individuals, snp_index, anc_snp, core_snp);
 			
+			//No variance and thus no EHH pattern can be found
 			if(anc_eh.size() <= 1 || der_eh.size() <= 1) {
-				//No variance and thus no EHH pattern can be found
-				
-				System.out.print("\tno variance");
 				unused_snps.add(core_snp);
 				return null;
 			}
@@ -184,12 +173,9 @@ public class iHS extends HaplotypeTests {
 			
 			
 			//Running Ancestral Analysis
-//			long t1 = System.nanoTime();
 			significant = anc_ehh.calcSignificantEhhValues();
-			if(!significant) {
-				System.out.print("\tinsig anc");
+			if(!significant)
 				return null;
-			}
 			
 			double[] ehh_values_anc = anc_ehh.getEhhValues();
 			int[] ehh_pos_anc = anc_ehh.getEhhPositions();
@@ -197,43 +183,33 @@ public class iHS extends HaplotypeTests {
 			
 			//Running Derived Analysis
 			significant = der_ehh.calcSignificantEhhValues();
-			if(!significant) {
-				System.out.print("\tinsig der");
+			if(!significant)
 				return null;
-			}
 			
 			double[] ehh_values_der = der_ehh.getEhhValues();
 			int[] ehh_pos_der = der_ehh.getEhhPositions();
-//			long t2 = System.nanoTime();System.out.println("\tEHH=\t\t" + (t2-t1)/1000000 + "ms");
 			
-			
-			//95% of time in this method; ~300ms
 			//find the area under the curve created by the EHH data
-//			long t3 = System.nanoTime();
 			double anc_ihh = integrateEhhValues(ehh_values_anc, ehh_pos_anc, core_snp, gm);
 			double der_ihh = integrateEhhValues(ehh_values_der, ehh_pos_der, core_snp, gm);
-//			long t4 = System.nanoTime();System.out.println("\tIntegrate=\t" + (t4-t3)/1000000 + "ms");
 			
 			//main iHS function; unstandardized
 			unstd_iHS = Math.log(anc_ihh / der_ihh);
 		}
 		else {
-			
-			System.out.print("\tno anc allele");
+			//No ancestral allele for proper comparison
 			unused_snps.add(core_snp);
 			return null;
 		}
 		
 		if(Double.isNaN(unstd_iHS) || Double.isInfinite(unstd_iHS)) {
-			
-			System.out.print("\tNaN or Inf");
+			//Irregular iHS values
 			unused_snps.add(core_snp);
 			return null;
 		}
 		
 		//saving the successful iHS SNP
 		all_iHS_snp.add(core_snp);
-		System.out.print("\tsuccess!!!");
 		return unstd_iHS;
 	}
 	

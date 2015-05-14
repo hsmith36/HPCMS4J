@@ -66,6 +66,20 @@ public class SimDist {
 		return sim_vals;
 	}
 	
+	public Double calcTotalProb() {
+		
+		Double prob = 0.0;
+		
+		for(int i = 0; i < sim_vals.size(); i++)
+			prob += sim_vals.get(i);
+		
+		return prob;
+	}
+	
+	public double getTotalProb() {
+		return total_prob;
+	}
+	
 	private Double calcProbAtBin(int indx) {
 		
 		Double prob = 0.0;
@@ -86,24 +100,10 @@ public class SimDist {
 		return prob;
 	}
 	
-//	private Double calcTotalProb() {
-//		
-//		Double prob = 0.0;
-//		
-//		for(int i = 0; i < sim_vals.size(); i++)
-//			prob += sim_vals.get(i);
-//		
-//		return prob;
-//	}
-	
 	private int getScoreIndex(Double score, int up, int dwn) {
 		
 		double rng = (double) up - (double) dwn;
 		double bin_size = rng / (double) BIN_NUM;
-		
-//		if(score == 0.513382123798503) {
-//			System.out.println("range=" + rng + "\tbin size=" + bin_size);
-//		}
 		
 		for(int i = 0; i < BIN_NUM; i++) {
 			if((dwn + bin_size*i) >= score)

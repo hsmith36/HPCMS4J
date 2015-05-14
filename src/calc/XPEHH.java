@@ -1,8 +1,6 @@
 package calc;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import tools.ExtendedHaplotype;
@@ -77,9 +75,6 @@ public class XPEHH extends HaplotypeTests {
 	@Override
 	public void runStat() {
 		
-//		System.out.println("Starting XPEHH Analysis");
-//		log.addLine("Starting XPEHH Analysis on "  + win.getSNPs().size() + " SNPs");
-		
 		//Starting XPEHH Analysis
 		Individual[] all_indv = combineIndvArrays(tp_individuals, xp_individuals);
 		
@@ -87,10 +82,6 @@ public class XPEHH extends HaplotypeTests {
 		for(int i = 0; i < win_snps.size(); i++) {
 			
 			SNP core_snp = win_snps.get(i);
-			
-//			Date date = new Date();
-//			log.addLine("\tCORE_" + core_snp + "\t" + new Timestamp(date.getTime()));//*******KEY TRACKER TEST****************
-//			System.out.print("CORE_" + core_snp);
 			
 			//calculate EHH scores for the combined populations (tp with xp)
 			EHH comb_ehh = getCombinedEHH(all_indv, core_snp);
@@ -106,25 +97,23 @@ public class XPEHH extends HaplotypeTests {
 				Double xp_integral = calcUnstandardEhhIntegral(core_snp, last_snp, xp_individuals);
 				
 				if(tp_integral != null && xp_integral != null) {
+					
 					//main XPEHH function; unstandardized
 					double unstd_XPEHH = Math.log(tp_integral / xp_integral);
 					
-//					System.out.println("\tFINAL=" + unstd_XPEHH);
 					//saving both the successful XPEHH SNP and unstandardized XPEHH value
 					all_XPEHH_snps.add(core_snp);
 					all_unstd_XPEHH.add(unstd_XPEHH);
 				}
 				else {
-//					System.out.println("Insignificant2 " + last_ehh);
+					//Error with calculation of the integral
 					unused_snps.add(core_snp);
-				}	
+				}
 			}
 			else {
-//				System.out.println("Insignificant " + last_ehh);
+				//insignificant EHH value at the end of the boundaries
 				unused_snps.add(core_snp);
 			}
-			
-			
 		}
 		
 		//calculating and saving all standardized XPEHH values
@@ -146,7 +135,7 @@ public class XPEHH extends HaplotypeTests {
 	
 	@Override
 	public void printStats() {
-//		===============Default Printout===================
+		
 		System.out.println("\nShowing XPEHH Data");
 		for(int i = 0; i < all_XPEHH.size(); i++) {
 			System.out.print("XPEHH =\t");

@@ -1,7 +1,6 @@
 package tools;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -63,7 +62,7 @@ public double getRecombRate(int up_pos, int dwn_pos) {
 		if(up_pos == dwn_pos)
 			return 0.0;
 		
-		//Case 1.5: positions cannot be found in map (invalid or beyond range)
+		//Case 2: positions cannot be found in map (invalid or beyond range)
 		Range dwn_rng = getRange(dwn_pos);
 		Range up_rng = null;
 		Range last_rng = st_pos.get(st_pos.size() - 1);
@@ -92,18 +91,18 @@ public double getRecombRate(int up_pos, int dwn_pos) {
 			System.exit(0);
 		}
 		
-		//Case 2: recombination rate can be estimated within single GenMap entry
+		//Case 3: recombination rate can be estimated within single GenMap entry
 		if(up_rng.equals(dwn_rng))
 			return getLocalizedRecombRate(up_rng, up_pos, dwn_pos);
 		
 		double dwn_recomb_rate = getLocalizedRecombRate(dwn_rng, dwn_rng.getEnd(), dwn_pos); 
 		double up_recomb_rate = getLocalizedRecombRate(up_rng, up_pos, up_rng.getSt()); 
 		
-		//Case 3: recombination rate can be estimated with exactly 2 GenMap entries
+		//Case 4: recombination rate can be estimated with exactly 2 GenMap entries
 		if(up_rng.getSt() == (dwn_rng.getEnd() + 1))
 			return dwn_recomb_rate + up_recomb_rate;
 		
-		//Case 4: recombination rate is estimated with 2+ GenMap entries
+		//Case 5: recombination rate is estimated with 2+ GenMap entries
 		double tot_recomb_rate = up_recomb_rate + dwn_recomb_rate;
 		int up_index = up_rng.getIndex();
 		int dwn_index = dwn_rng.getIndex();
@@ -137,8 +136,6 @@ public double getRecombRate(int up_pos, int dwn_pos) {
 	}
 	
 	public Range getRange(int pos) {
-		
-		//TODO: See if I can improve this process
 		
 		for(Range r : gen_map.keySet()) {
 			if(r.getSt() <= pos && r.getEnd() >= pos)

@@ -101,6 +101,7 @@ public class SimulationParser {
 		return dists;
 	}
 	
+	@SuppressWarnings("unused")
 	private void printSimDistArr(SimDist[] dists) {
 		
 		for(int i = 0; i < NUM_TESTS; i++) {
