@@ -17,7 +17,7 @@ public class Window implements Serializable {
 	public Window() {
 		st_pos = 0;
 		end_pos = 0;
-		all_snps = null;
+		all_snps = new ArrayList<SNP>();
 	}
 	
 	public Window(int st_pos, int end_pos) {

@@ -18,10 +18,10 @@ import tools.Window;
 public class SetupDriver {
 
 	private static int MEGABASE_CONVERSION = 1000000;
-	private static String LEGEND_TYPE = "legend";
+	private static String LEGEND_TYPE = ".legend";
 	private static String EMF_TYPE = "emf";
 	private static String ANCESTRAL_TYPE = "ancestral";
-	private static String PHASED_TYPE = "phased";
+	private static String HAP_TYPE = ".hap";
 	private static String VCF_TYPE = ".vcf";
 	
 	private boolean run_intersect = true;
@@ -241,13 +241,13 @@ public class SetupDriver {
 		
 		//========Find Path Variables========
 		String lg_tp_path = getPhasedPath(data_dir, LEGEND_TYPE, chr, t_pop);
-		String ph_tp_path = getPhasedPath(data_dir, PHASED_TYPE, chr, t_pop);//for target population
+		String ph_tp_path = getPhasedPath(data_dir, HAP_TYPE, chr, t_pop);//for target population
 		
 		String lg_xp_path = getPhasedPath(data_dir, LEGEND_TYPE, chr, x_pop);
-		String ph_xp_path = getPhasedPath(data_dir, PHASED_TYPE, chr, x_pop);//for cross population
+		String ph_xp_path = getPhasedPath(data_dir, HAP_TYPE, chr, x_pop);//for cross population
 		
 		String lg_op_path = getPhasedPath(data_dir, LEGEND_TYPE, chr, o_pop);
-		String ph_op_path = getPhasedPath(data_dir, PHASED_TYPE, chr, o_pop);
+		String ph_op_path = getPhasedPath(data_dir, HAP_TYPE, chr, o_pop);
 		
 		String anc_path = getAncestralPath(data_dir, chr);
 		String map_path = getMapPath(map_dir, chr);
