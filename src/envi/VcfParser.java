@@ -43,7 +43,7 @@ public class VcfParser {
 	}
 	
 	public void parseVCF(int win_size, boolean anc_data) throws FileParsingException {
-		log.addLine("Importing legend data from " +  file_path);
+		log.addLine("Importing VCF data from " +  file_path);
 		
 		try {
 			
