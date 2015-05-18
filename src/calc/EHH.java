@@ -42,9 +42,7 @@ public class EHH {
 	private Individual[] individuals;
 	private ExtendedHaplotype all_haplo;
 	
-	//=========TESTING==========
-	private List<SNP> test_list = new ArrayList<SNP>();
-	//==========================
+	private List<SNP> dups_test = new ArrayList<SNP>();
 	
 	public EHH(Window core_win, Individual[] individuals, SNP core_snp, 
 			ExtendedHaplotype all_haplo, List<Window> all_win) {
@@ -72,7 +70,7 @@ public class EHH {
 	
 	public boolean calcEhhToPosition(int end_pos) {
 		
-		test_list = new ArrayList<SNP>();
+		dups_test = new ArrayList<SNP>();
 		
 		//This is the EHH eqn denominator
 		int ct_comb_2 = combineSetBy2(all_haplo);
@@ -86,15 +84,16 @@ public class EHH {
 			
 			nxt_snp = getClosestSNP(nxt_snp);
 			
-			//=========FOR TESTING==========
-			if(test_list.contains(nxt_snp)) {
-				System.out.println("*Warning: CORE_" + core_snp + " has unexpected duplicate data");
+			//=========Duplicate Data Exception==========
+			if(dups_test.contains(nxt_snp)) {
+				System.out.println("\nWarning: CORE_" + core_snp + " has unexpected duplicate data");
 				System.out.println("\t-Unexpected duplicate with " + nxt_snp);
+				System.out.println("\t-Consider removing duplicate and rerun window");
 				return false;
 			}
 			else
-				test_list.add(nxt_snp);
-			//=============================
+				dups_test.add(nxt_snp);
+			//===========================================
 			
 			//both boundaries are hit; not enough variance for significance
 			if(nxt_snp == null)
@@ -125,7 +124,7 @@ public class EHH {
 	 */
 	public boolean calcSignificantEhhValues(double ehh_cutoff) {
 		
-		test_list = new ArrayList<SNP>();
+		dups_test = new ArrayList<SNP>();
 		
 		//This is the EHH eqn denominator
 		int ct_comb_2 = combineSetBy2(all_haplo); 
@@ -139,15 +138,16 @@ public class EHH {
 			
 			nxt_snp = getClosestSNP(nxt_snp);
 			
-			//=========FOR TESTING==========
-			if(test_list.contains(nxt_snp)) {
+			//=========Duplicate Data Exception==========
+			if(dups_test.contains(nxt_snp)) {
 				System.out.println("*Warning: CORE_" + core_snp + " has unexpected duplicate data");
 				System.out.println("\t-Unexpected duplicate with " + nxt_snp);
+				System.out.println("\t-Consider removing duplicate and rerun window");
 				return false;
 			}
 			else
-				test_list.add(nxt_snp);
-			//=============================
+				dups_test.add(nxt_snp);
+			//===========================================
 			
 			//both boundaries are hit; not enough variance for significance
 			if(nxt_snp == null)

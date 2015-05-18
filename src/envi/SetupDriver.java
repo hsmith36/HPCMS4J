@@ -201,9 +201,11 @@ public class SetupDriver {
 		
 		if(run_intersect) {
 			System.out.println("Running Intersections");
+			log.add("\nRunning Intersections....");
 			
 			PopIntersector pi = new PopIntersector();
 			pi.intersectCrossWithTargetPopulations(tp_wins, xp_wins, tp_indv, xp_indv);
+			log.add("....");
 			pi.intersectCrossWithOutgroupPopulations(op_wins, xp_wins, op_indv, op_indv);
 			
 			txin_wins = pi.getTargetXCrossWins();
@@ -213,9 +215,12 @@ public class SetupDriver {
 			xoin_wins = pi.getCrossXOutWins();
 			xp_ino_indv = pi.getCrossXOutIndv();
 			op_inx_indv = pi.getOutXCrossIndv();
+			
+			log.addLine(" complete!");
 		}
 		else {
 			System.out.println("Skipping Intersection");
+			log.addLine("\nSkipping Intersections");
 			
 			txin_wins = tp_wins;
 			tp_inx_indv = tp_indv;
