@@ -64,8 +64,7 @@ public class SNP implements Comparable<SNP>, Serializable {
 				&& s.getAllele0().equals(a1)
 				&& s.getAllele1().equals(a0)
 				&& !getSnpID().contains("-ref")
-				&& !s.getSnpID().contains("-ref")
-				) {
+				&& !s.getSnpID().contains("-ref")) {
 			return true;
 		}
 		
