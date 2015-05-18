@@ -108,7 +108,7 @@ public class PopIntersector {
 								Individual[] p2_indv,
 								Individual[] p2_indv_insect) {
 
-		wins_insect.add(new Window(0, 0, 0));
+		wins_insect.add(new Window(0, 0, 0));//to initialize the comparator list
 
 		for(int i = 0; i < p1_wins.size(); i++) {
 			for(int j = 0; j < p2_wins.size(); j++) {

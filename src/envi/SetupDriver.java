@@ -225,6 +225,54 @@ public class SetupDriver {
 			xp_ino_indv = xp_indv;
 			op_inx_indv = op_indv;
 		}
+		
+//		//TESTING INTERSECTION
+//		File f1 = new File("txin_wins.insect");
+//		File f2 = new File("tp_inx_indv.insect");
+//		File f3 = new File("xp_int_indv.insect");
+//		File f4 = new File("xoin_wins.insect");
+//		File f5 = new File("xp_ino_indv.insect");
+//		File f6 = new File("op_inx_indv.insect");
+//		
+//		try {
+//			PrintWriter pw = new PrintWriter(f1);
+//			pw.write("Windows:\n" + txin_wins.toString());
+//			pw.close();
+//			
+//			pw = new PrintWriter(f2);
+//			pw.write("Individuals:\n" + tp_inx_indv.toString());
+//			for(int i = 0; i < tp_inx_indv.length; i++)
+//				pw.write(tp_inx_indv[i] + "\n");
+//			pw.close();
+//			
+//			pw = new PrintWriter(f3);
+//			pw.write("Individuals:\n" + xp_int_indv.toString());
+//			for(int i = 0; i < xp_int_indv.length; i++)
+//				pw.write(xp_int_indv[i] + "\n");
+//			pw.close();
+//			
+//			pw = new PrintWriter(f4);
+//			pw.write("Windows:\n" + xoin_wins.toString());
+//			pw.close();
+//			
+//			pw = new PrintWriter(f5);
+//			pw.write("Individuals:\n" + xp_ino_indv.toString());
+//			for(int i = 0; i < xp_ino_indv.length; i++)
+//				pw.write(xp_ino_indv[i] + "\n");
+//			pw.close();
+//			
+//			pw = new PrintWriter(f6);
+//			pw.write("Individuals:\n" + op_inx_indv.toString());
+//			for(int i = 0; i < op_inx_indv.length; i++)
+//				pw.write(op_inx_indv[i] + "\n");
+//			pw.close();
+//			
+//			
+//		} catch (FileNotFoundException e) {
+//			
+//			e.printStackTrace();
+//		}
+//		//TESTING INTERSECTION
 	}
 	
 	private void parseFiles(int chr) throws Exception {

@@ -67,12 +67,12 @@ public class VcfParser {
 			}
 			
 			//Add data to Individual[] and create Windows
-			Window cur_win = new Window();
-		    Window anc_win = new Window();
 		    int start_pos = 0;
 		    int end_pos = win_size - 1;
 		    int index = 0;
 		    int pos = 0;
+		    Window cur_win = new Window(start_pos, end_pos, index);
+		    Window anc_win = new Window(start_pos, end_pos, index);
 		    
 		    while(scan.hasNext()) {
 		    	
@@ -107,7 +107,8 @@ public class VcfParser {
 				}
 				
 				if(ln[4].contains(",")) {
-					if(anc_data && validAncestralData(ln[7])) {
+					if(validAncestralData(ln[7])) {
+						
 						//Fill in Window and Ancestral data
 						String a0 = ln[3].toUpperCase();
 						String anc_allele = getAncestralAllele(ln);
@@ -118,16 +119,15 @@ public class VcfParser {
 						//adding alternate data
 						for(int i = 0; i < alt_alleles.length; i++) {
 							cur_win.addSNP(pos, a0, alt_alleles[i], alt_ids[i]);
-							if(anc_data && validAncestralData(ln[7]))
+							if(anc_data)
 								anc_win.addSNP(pos, anc_allele, "-", alt_ids[i]);
 						}
 						//adding a0 data
 						cur_win.addSNP(pos, alt_alleles[0], a0, alt_ids[alt_ids.length - 1]);
-						if(anc_data && validAncestralData(ln[7]))
+						if(anc_data)
 							anc_win.addSNP(pos, anc_allele, "-", alt_ids[alt_ids.length - 1]);
 						
 						//Fill in Individual data
-						
 						for(int i = DEFAULT_COL; i < ln.length; i++) {
 							//adding alternate data
 							String[] alleles = ln[i].split("\\|");
@@ -195,6 +195,10 @@ public class VcfParser {
 //				
 //				System.out.println("\n\nWindows: " + windows.size());
 //				for(int i = 0; i < windows.size(); i++) 
+//					System.out.println(windows.get(i));
+//				
+//				System.out.println("\n\nWindows: " + windows.size());
+//				for(int i = 0; i < 2; i++) 
 //					System.out.println(windows.get(i));
 //				
 //				System.out.println("\n\nAncestral:" + ancestral.size());
