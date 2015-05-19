@@ -142,7 +142,7 @@ public class Analyzer {
 		for(int i = 0; i < all_ws.size(); i++) {
 			WindowStats cur_ws = all_ws.get(i);
 			
-			System.out.println("Analyzing window with positions:\t" + cur_ws.getStPos() + " to " + cur_ws.getEndPos());
+			System.out.println("Analyzing window with positions:\t" + cur_ws.getStPos() + " to " + cur_ws.getEndPos());//TODO: remove this
 			calcCmsScores(cur_ws, neutral_sim, select_sim);
 		}
 		
@@ -201,6 +201,7 @@ public class Analyzer {
 		for(int i = 0; i < all_snps.size(); i++) {
 			
 			SNP cur_snp = all_snps.get(i);
+			System.out.println("\t" + cur_snp);
 			
 			tst_scores[0] = ws.getIhsScore(cur_snp);
 			tst_scores[1] = ws.getIhhScore(cur_snp);

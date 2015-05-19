@@ -215,7 +215,7 @@ public class Combiner {
 	
 	private void addFile(File win_file) throws FileParsingException {
 		
-		System.out.println("Combining Window:\t" + win_file.getName());
+		System.out.println("Combining Window:\t" + win_file.getName());//TODO: remove this
 		
 		if(win_file != null && win_file.exists()) {
 			
