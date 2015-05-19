@@ -116,20 +116,20 @@ public class VcfParser {
 						
 						String[] alt_ids = createAltIDs(pos, a0, alt_alleles);
 						
-						//adding alternate data
+						//adding alternate SNP data
 						for(int i = 0; i < alt_alleles.length; i++) {
 							cur_win.addSNP(pos, a0, alt_alleles[i], alt_ids[i]);
 							if(anc_data)
 								anc_win.addSNP(pos, anc_allele, "-", alt_ids[i]);
 						}
-						//adding a0 data
+						//adding ref SNP data
 						cur_win.addSNP(pos, alt_alleles[0], a0, alt_ids[alt_ids.length - 1]);
 						if(anc_data)
 							anc_win.addSNP(pos, anc_allele, "-", alt_ids[alt_ids.length - 1]);
 						
 						//Fill in Individual data
 						for(int i = DEFAULT_COL; i < ln.length; i++) {
-							//adding alternate data
+							//adding alternate Individual data
 							String[] alleles = ln[i].split("\\|");
 							
 							for(int j = 0; j < alt_alleles.length; j++) {
@@ -145,7 +145,7 @@ public class VcfParser {
 									individuals[i-DEFAULT_COL].addAlleleToStrand2(false);
 								
 							}
-							//adding a0 data
+							//adding ref Individual data
 							if(Integer.parseInt(alleles[0]) == 0)
 								individuals[i-DEFAULT_COL].addAlleleToStrand1(true);
 							else
@@ -162,19 +162,23 @@ public class VcfParser {
 				}
 				else {
 					//Fill in Window and Ancestral data
-			    	cur_win.addSNP(pos, ln[3].toUpperCase(), ln[4].toUpperCase(), ln[2]);
-			    	if (anc_data && validAncestralData(ln[7]))
-			    		anc_win.addSNP(pos, getAncestralAllele(ln), "-", ln[2]);
-				
-			    	//Fill in Individual data
-			    	for (int i = DEFAULT_COL; i < ln.length; i++) {
-			    		
-			    		String[] alleles = ln[i].split("\\|");
-			    		individuals[i-DEFAULT_COL].addAlleleToStrand1(alleles[0]); 
-			    		individuals[i-DEFAULT_COL].addAlleleToStrand2(alleles[1]); 
-			    	}
-			    	
-			    	index++;
+					SNP s = new SNP(pos, ln[3].toUpperCase(), ln[4].toUpperCase(), ln[2]);
+					boolean success = addSnpToWin(cur_win, s);
+					
+					if(success) {
+				    	if (anc_data && validAncestralData(ln[7]))
+				    		anc_win.addSNP(pos, getAncestralAllele(ln), "-", ln[2]);
+					
+				    	//Fill in Individual data
+				    	for (int i = DEFAULT_COL; i < ln.length; i++) {
+				    		
+				    		String[] alleles = ln[i].split("\\|");
+				    		individuals[i-DEFAULT_COL].addAlleleToStrand1(alleles[0]); 
+				    		individuals[i-DEFAULT_COL].addAlleleToStrand2(alleles[1]); 
+				    	}
+				    	
+				    	index++;
+					}
 				}
 			}  
 			
@@ -211,6 +215,23 @@ public class VcfParser {
 			String msg = "Error: Could not correctly read in VCF file " + file_path;
 			throw new FileParsingException(log, msg);
 		}
+	}
+	
+	/*
+	 * The containsSNP() function looks at position, allele0, and allele1
+	 * 		-In the special case when w contains a SNP where s matches
+	 * 		 position, s.allele0 == allele1 or allele0, AND s.allele1 == allele0 
+	 * 		 or allele1, s is not incorporated into the window. It is considered 
+	 * 		 redundant data and not realistic for further calculation.
+	 */
+	private boolean addSnpToWin(Window w, SNP s) {
+		
+		if(!w.containsSNP(s)) {
+			w.addSNP(s);
+			return true;
+		}
+		
+		return false;
 	}
 	
 	private boolean isPhased(String[] line) {

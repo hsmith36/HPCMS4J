@@ -86,7 +86,7 @@ public class EHH {
 			
 			//=========Duplicate Data Exception==========
 			if(dups_test.contains(nxt_snp)) {
-				System.out.println("\nWarning: CORE_" + core_snp + " has unexpected duplicate data");
+				System.out.println("\nWarning: CORE_" + core_snp + " has unhandled duplicate data");
 				System.out.println("\t-Unexpected duplicate with " + nxt_snp);
 				System.out.println("\t-Consider removing duplicate and rerun window");
 				return false;
@@ -140,7 +140,7 @@ public class EHH {
 			
 			//=========Duplicate Data Exception==========
 			if(dups_test.contains(nxt_snp)) {
-				System.out.println("*Warning: CORE_" + core_snp + " has unexpected duplicate data");
+				System.out.println("*Warning: CORE_" + core_snp + " has unhandled duplicate data");
 				System.out.println("\t-Unexpected duplicate with " + nxt_snp);
 				System.out.println("\t-Consider removing duplicate and rerun window");
 				return false;

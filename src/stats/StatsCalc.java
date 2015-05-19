@@ -55,7 +55,9 @@ public class StatsCalc {
 		
 		Log log = new Log(Log.type.stat, out_dir.getName());
 		try {
-			System.out.println("Running window: " + win_num);
+			System.out.println("Running Window: " + win_num);
+			System.out.println("Chromosome: " + chr);
+			System.out.println("Output Dir:" + out_dir);
 			
 			StatsCalc sc = new StatsCalc(out_dir, chr, win_num, log);
 			sc.runStats();
