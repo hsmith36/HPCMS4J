@@ -141,7 +141,9 @@ public class Analyzer {
 		System.out.println("Calculating Product and Mean of Scores");
 		for(int i = 0; i < all_ws.size(); i++) {
 			WindowStats cur_ws = all_ws.get(i);
-			calcCmsScores(cur_ws, neutral_sim, select_sim);//pass simulations too
+			
+			System.out.println("Analyzing window with positions:\t" + cur_ws.getStPos() + " to " + cur_ws.getEndPos());
+			calcCmsScores(cur_ws, neutral_sim, select_sim);
 		}
 		
 		System.out.println("Analysis Finished");
@@ -186,7 +188,7 @@ public class Analyzer {
 	 * 		[4] = XPEHH data
 	 */
 	private void calcCmsScores(WindowStats ws, SimDist[] neut_sim, SimDist[] sel_sim) 
-			throws FileParsingException {//get SimDist too
+			throws FileParsingException {
 		
 		Map<SNP, Double> win_scores_prod = new HashMap<SNP, Double>();
 		Map<SNP, Double> win_scores_mean = new HashMap<SNP, Double>();
