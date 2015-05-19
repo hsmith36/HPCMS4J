@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
+import errors.FileParsingException;
 import tools.*;
 
 public class WindowParser {
@@ -14,15 +15,17 @@ public class WindowParser {
 	
 	private WindowStats ws;
 	
-	public WindowParser(File win_file, int st_pos, int end_pos) {
+	private Log log;
+	
+	public WindowParser(Log log, File win_file, int st_pos, int end_pos) {
 		
+		this.log = log;
 		this.win_file = win_file;
 		
 		ws = new WindowStats(st_pos, end_pos);
-		
 	}
 	
-	public WindowStats parseWindow() {
+	public WindowStats parseWindow() throws FileParsingException {
 		
 		List<SNP> ihs_snps = new LinkedList<SNP>();
 		List<SNP> xpehh_snps = new LinkedList<SNP>();
@@ -42,7 +45,6 @@ public class WindowParser {
 		//List<Double> fajd_stats = new LinkedList<Double>();
 		//List<Double> new_stats = new LinkedList<Double>();
 		
-		//TODO: a bunch of stuff
 		try {
 			
 			Scanner scan = new Scanner(win_file);
@@ -52,8 +54,9 @@ public class WindowParser {
 				
 				String[] line = scan.nextLine().split("\\s+");
 				
-				if(line.length != 7) {
-					//TODO: throw some sort of error
+				if(line.length != 8) {
+					String msg = "Error: Window file " + win_file.getName() + " has irregular number of scores";
+					throw new FileParsingException(log, msg);
 				}
 				
 				SNP s = new SNP(Integer.parseInt(line[1]), line[0]);
@@ -61,7 +64,7 @@ public class WindowParser {
 				Double x_dbl = Double.parseDouble(line[3]);
 				Double h_dbl = Double.parseDouble(line[4]);
 				Double dd_dbl = Double.parseDouble(line[5]);
-				Double Xd_dbl = Double.parseDouble(line[6]);
+				Double d_dbl = Double.parseDouble(line[6]);
 				Double f_dbl = Double.parseDouble(line[7]);
 				//Double t_dbl = Double.parseDouble(line[8]);
 				//Double new_dbl = Double.parseDouble(line[X]);
@@ -82,9 +85,9 @@ public class WindowParser {
 					ddaf_snps.add(s);
 					ddaf_stats.add(dd_dbl);
 				}
-				if(Xd_dbl != Double.NaN) {
+				if(d_dbl != Double.NaN) {
 					Xdaf_snps.add(s);
-					Xdaf_stats.add(Xd_dbl);
+					Xdaf_stats.add(d_dbl);
 				}
 				if(f_dbl != Double.NaN) {
 					fst_snps.add(s);
@@ -101,11 +104,11 @@ public class WindowParser {
 			}
 			
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			String msg = "Error: Could not open data file";
+			throw new FileParsingException(log, msg);
 		} catch (NumberFormatException e) {
-			//TODO: throw some sort of error
-			//I do want to kill the whole process because this has to be perfect in order to work properly
+			String msg = "Error: Irregular data types in window windo file " + win_file.getName();
+			throw new FileParsingException(log, msg);
 		}
 		
 		ws.setIHS(ihs_stats, ihs_snps);

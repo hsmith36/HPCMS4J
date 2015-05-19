@@ -92,11 +92,11 @@ public class SimulationParser {
 		
 		SimDist[] dists = new SimDist[NUM_TESTS];
 		
-		dists[0] = new SimDist(-6,6);
-		dists[1] = new SimDist(-3,5);
-		dists[2] = new SimDist(-1,6);
-		dists[3] = new SimDist(-1,1);
-		dists[4] = new SimDist(-3,8);
+		dists[0] = new SimDist(log, -6, 6);
+		dists[1] = new SimDist(log, -3, 5);
+		dists[2] = new SimDist(log, -1, 6);
+		dists[3] = new SimDist(log, -1, 1);
+		dists[4] = new SimDist(log, -3, 8);
 		
 		return dists;
 	}

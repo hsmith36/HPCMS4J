@@ -15,7 +15,6 @@ import errors.IllegalInputException;
 import calc.HaplotypeTests;
 import tools.*;
 
-//StatsCombiner
 public class Analyzer {
 
 	/**
@@ -36,6 +35,7 @@ public class Analyzer {
 	public static void main(String[] args) {
 		
 		Log log = new Log(Log.type.analysis);
+		System.out.println("Starting the final phase of SelecT");
 		
 		String type = args[0];
 		
@@ -127,13 +127,17 @@ public class Analyzer {
 	
 	public void runCmsAnalysis() throws FileParsingException {
 		
-		System.out.println("Starting Analysis");
+		log.addLine("\nRunning Analysis");
+		log.addLine("Importing Sim Data");
+		
+		System.out.println("\nRunning Analysis");
 		System.out.println("Importing Sim Data");
 		
 		SimulationParser sp = new SimulationParser(log, sim_dir);
 		SimDist[] neutral_sim = sp.getNeutralSimulations();
 		SimDist[] select_sim = sp.getSelectedSimulations();
 		
+		log.addLine("Calculating Product and Mean of Scores");
 		System.out.println("Calculating Product and Mean of Scores");
 		for(int i = 0; i < all_ws.size(); i++) {
 			WindowStats cur_ws = all_ws.get(i);
@@ -181,7 +185,8 @@ public class Analyzer {
 	 * 		[3] = dDAF data
 	 * 		[4] = XPEHH data
 	 */
-	private void calcCmsScores(WindowStats ws, SimDist[] neut_sim, SimDist[] sel_sim) {//get SimDist too
+	private void calcCmsScores(WindowStats ws, SimDist[] neut_sim, SimDist[] sel_sim) 
+			throws FileParsingException {//get SimDist too
 		
 		Map<SNP, Double> win_scores_prod = new HashMap<SNP, Double>();
 		Map<SNP, Double> win_scores_mean = new HashMap<SNP, Double>();
@@ -225,7 +230,7 @@ public class Analyzer {
 								Double[] tst_scores, 
 								SimDist[] neut_sim, 
 								SimDist[] sel_sim, 
-								double prior_prob) {
+								double prior_prob) throws FileParsingException {
 		
 		Double[] score_probs = new Double[NUM_TESTS];
 		
@@ -257,7 +262,7 @@ public class Analyzer {
 									Double[] tst_scores, 
 									SimDist[] neut_sim, 
 									SimDist[] sel_sim, 
-									double prior_prob) {
+									double prior_prob) throws FileParsingException {
 		
 		Double[] score_probs = new Double[NUM_TESTS];
 		

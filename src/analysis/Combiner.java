@@ -44,28 +44,33 @@ public class Combiner {
 		stat_str = new String[0];
 	}
 	
-	//combines only some/all of the stats (smarter method)
 	public void combineWindows(String str, String range) throws Exception {
+		
+		log.addLine("\tRunning Window Combiner");
+		System.out.println("\tRunning Window Combiner");
 		
 		stat_str = createStatString(str);
 		int dwn_rng = getDownRng(range);
 		int up_rng = getUpRng(range);
 		
 		log.addLine("Reading in files");
+		System.out.println("Reading in files");
 		importData(dwn_rng, up_rng);
 	}
 	
 	//combines all of the stats
-	public void combineWindows() {
+	public void combineWindows() throws FileParsingException {
+		
+		log.addLine("\nRunning Window Combiner");
+		System.out.println("\nRunning Window Combiner");
 		
 		stat_str = DEFAULT;
 		log.addLine("Reading in files");
+		System.out.println("Reading in files");
 		importData();
 		
 	}
 	
-	//writes the stats to file (can be called from Analyzer too!)
-	//NOTE: dont create the output file structure until this method is called
 	public void writeStats() throws FileParsingException {
 		
 		try {
@@ -185,7 +190,7 @@ public class Combiner {
 		pw.close();
 	}
 	
-	private void importData() {
+	private void importData() throws FileParsingException {
 		
 		String[] all_file_names = stats_dir.list();
 		
@@ -197,7 +202,7 @@ public class Combiner {
 		}
 	}
 	
-	private void importData(int dwn_rng, int up_rng) {
+	private void importData(int dwn_rng, int up_rng) throws FileParsingException {
 		
 		String[] all_files = stats_dir.list();
 		
@@ -208,14 +213,14 @@ public class Combiner {
 		}
 	}
 	
-	private void addFile(File win_file) {
+	private void addFile(File win_file) throws FileParsingException {
 		
 		if(win_file != null && win_file.exists()) {
 			
 			int st_pos = getStart(win_file.getName());
 			int end_pos = getEnd(win_file.getName());
 			
-			WindowParser wp = new WindowParser(win_file, st_pos, end_pos);
+			WindowParser wp = new WindowParser(log, win_file, st_pos, end_pos);
 			WindowStats ws = wp.parseWindow();
 			all_ws.add(ws);
 		}

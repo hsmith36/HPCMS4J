@@ -3,6 +3,8 @@ package tools;
 import java.util.ArrayList;
 import java.util.List;
 
+import errors.FileParsingException;
+
 public class SimDist {
 	
 	private final int BIN_NUM = 60;
@@ -13,7 +15,11 @@ public class SimDist {
 	
 	private List<Double> sim_vals;
 	
-	public SimDist(int low_bndry, int up_bndry) {
+	public Log log;
+	
+	public SimDist(Log log, int low_bndry, int up_bndry) {
+		
+		this.log = log;
 		
 		this.up_bndry = up_bndry;
 		this.low_bndry = low_bndry;
@@ -28,14 +34,11 @@ public class SimDist {
 		total_prob += val;
 	}
 	
-	public Double getProb(Double score) {
-		
-		//TODO: Handle the 2-sided case **************************
+	public Double get1SidedProb(Double score) throws FileParsingException {
 		
 		if(sim_vals.size() != BIN_NUM) {
-			//throw new FileParsingException("Bin numbers don't coincide, error in reading simulated data"
-			System.out.println("ERROR WITH BIN NUMBER");
-			System.exit(0);
+			String msg = "Bin numbers don't coincide, error in reading simulated data";
+			throw new FileParsingException(log, msg);
 		}
 		
 		int s_indx = getScoreIndex(score, up_bndry, low_bndry);
@@ -43,15 +46,11 @@ public class SimDist {
 		return calcProbAtBin(s_indx);
 	}
 	
-	public Double getProb(Double score, boolean two_sided) {
-		
-		if(!two_sided)
-			return getProb(score);
+	public Double get2SidedProb(Double score) throws FileParsingException {
 		
 		if(sim_vals.size() != BIN_NUM) {
-			//throw new FileParsingException("Bin numbers don't coincide, error in reading simulated data"
-			System.out.println("ERROR WITH BIN NUMBER");
-			System.exit(0);
+			String msg = "Bin numbers don't coincide, error in reading simulated data";
+			throw new FileParsingException(log, msg);
 		}
 		
 		score = Math.abs(score);
@@ -60,6 +59,25 @@ public class SimDist {
 		int low_indx = getScoreIndex((-1 * score), up_bndry, low_bndry);
 		
 		return calcTwoSidedProbAtBin(up_indx, low_indx);
+	}
+	
+	/**
+	 * Handles probability calculations for simulations. Uses inputed boolean to
+	 * decided which kind of probability to run
+	 * 
+	 * @param score			Probability of this score given the SimDist score 
+	 * 						distribution
+	 * @param two_sided		If true this method calculates two-sided probability;
+	 * 						if false it calls one-sided getProb function
+	 * @return
+	 * @throws FileParsingException
+	 */
+	public Double getProb(Double score, boolean two_sided) throws FileParsingException {
+		
+		if(two_sided)
+			return get2SidedProb(score);
+		else
+			return get1SidedProb(score);
 	}
 	
 	public List<Double> getSimVals() {
