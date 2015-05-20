@@ -4,11 +4,18 @@ package analysis;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableSet;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import errors.FileParsingException;
 import errors.IllegalInputException;
@@ -108,8 +115,8 @@ public class Analyzer {
 	private File out_dir;
 	
 	private List<WindowStats> all_ws;
-	private Map<SNP, Double> cms_scores_prod;//product of scores
-	private Map<SNP, Double> cms_scores_mean;//mean of scores
+	private TreeMap<SNP, Double> cms_scores_prod;//product of scores
+	private TreeMap<SNP, Double> cms_scores_mean;//mean of scores
 	
 	Log log;
 	
@@ -119,8 +126,8 @@ public class Analyzer {
 		this.out_dir = out_dir;
 		this.sim_dir = sim_dir;
 		
-		cms_scores_prod = new HashMap<SNP, Double>();
-		cms_scores_mean = new HashMap<SNP, Double>();
+		cms_scores_prod = new TreeMap<SNP, Double>();
+		cms_scores_mean = new TreeMap<SNP, Double>();
 		
 		this.log = log;
 	}
@@ -190,8 +197,8 @@ public class Analyzer {
 	private void calcCmsScores(WindowStats ws, SimDist[] neut_sim, SimDist[] sel_sim) 
 			throws FileParsingException {
 		
-		Map<SNP, Double> win_scores_prod = new HashMap<SNP, Double>();
-		Map<SNP, Double> win_scores_mean = new HashMap<SNP, Double>();
+		TreeMap<SNP, Double> win_scores_prod = new TreeMap<SNP, Double>();
+		TreeMap<SNP, Double> win_scores_mean = new TreeMap<SNP, Double>();
 		
 		double prior_prob = 1 / (double) ws.getTotNumSNPs();
 		
@@ -318,22 +325,24 @@ public class Analyzer {
 		return null;
 	}
 	
-	private Map<SNP, Double> normalizeData(Map<SNP, Double> unstd_cms) {
-		
-		List<SNP> all_keys = new LinkedList<SNP>();
-		for(SNP s : unstd_cms.keySet()) 
-			all_keys.add(s);
-		Collections.sort(all_keys);
+	@SuppressWarnings("unchecked")
+	private TreeMap<SNP, Double> normalizeData(TreeMap<SNP, Double> unstd_cms) {
 		
 		List<Double> all_values = new LinkedList<Double>();
-		for(int i = 0; i < all_keys.size(); i++) 
-			all_values.add(unstd_cms.get(all_keys.get(i)));
+		TreeMap<SNP, Double> std_cms = new TreeMap<SNP, Double>();
+		
+		Iterator<SNP> itr = unstd_cms.navigableKeySet().iterator();
+		while(itr.hasNext()) 
+			all_values.add(unstd_cms.get(itr.next()));
 		
 		all_values = HaplotypeTests.normalizeData(all_values);
 		
-		Map<SNP, Double> std_cms = new HashMap<SNP, Double>();
-		for(int i = 0; i < all_keys.size(); i++)
-			std_cms.put(all_keys.get(i), all_values.get(i));
+		itr = unstd_cms.navigableKeySet().iterator();
+		int indx = 0;
+		while(itr.hasNext()) {
+			std_cms.put(itr.next(), all_values.get(indx));
+			indx++;
+		}
 		
 		return std_cms;
 	}
@@ -368,9 +377,10 @@ public class Analyzer {
 	public String toString() {
 		
 		List<SNP> all_keys = new LinkedList<SNP>();
-		for(SNP s : cms_scores_mean.keySet()) 
-			all_keys.add(s);
-		Collections.sort(all_keys);
+		
+		Iterator<SNP> itr = cms_scores_mean.navigableKeySet().iterator();
+		while(itr.hasNext()) 
+			all_keys.add(itr.next());
 		
 		StringBuilder sb = new StringBuilder();
 		WindowStats ws = new WindowStats();
