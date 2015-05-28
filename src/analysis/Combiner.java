@@ -13,7 +13,9 @@ import tools.*;
 
 public class Combiner {
 
-	private static String[] DEFAULT = {"i", "x", "h", "dd", "d", "f"};//"t", "new"
+	private static String[] DEFAULT = {"i", "x", "h", "dd", "d", "f", "up", "um", "p", "m"};//"t", "new"
+	
+	private int chr;
 	
 	private File out_dir;
 	private File stats_dir;
@@ -24,15 +26,12 @@ public class Combiner {
 	private Log log;
 	
 	
-	public Combiner(String out_dir_name, Log log) throws IllegalInputException {
+	public Combiner(File out_dir, int chr, Log log) throws IllegalInputException {
 		
+		this.chr = chr;
 		this.log = log;
 		
-		out_dir = new File(out_dir_name);
-		if(!out_dir.isDirectory()) {
-			String msg = "Error: Output directory path does not exist";
-			throw new IllegalInputException(log, msg);
-		}
+		this.out_dir = out_dir;
 		
 		stats_dir = new File(out_dir.getAbsolutePath() + File.separator + "stats_files");
 		if(!stats_dir.isDirectory()) {
@@ -44,18 +43,16 @@ public class Combiner {
 		stat_str = new String[0];
 	}
 	
-	public void combineWindows(String str, String range) throws Exception {
+	public void combineWindows(String str) throws Exception {
 		
 		log.addLine("\tRunning Window Combiner");
 		System.out.println("\tRunning Window Combiner");
 		
 		stat_str = createStatString(str);
-		int dwn_rng = getDownRng(range);
-		int up_rng = getUpRng(range);
 		
 		log.addLine("Reading in files");
 		System.out.println("Reading in files");
-		importData(dwn_rng, up_rng);
+		importData(false);
 	}
 	
 	//combines all of the stats
@@ -67,8 +64,19 @@ public class Combiner {
 		stat_str = DEFAULT;
 		log.addLine("Reading in files");
 		System.out.println("Reading in files");
-		importData();
+		importData(false);
 		
+	}
+	
+	public void combineAnalysisData() throws FileParsingException {
+		
+		log.addLine("\nRunning Window Combiner");
+		System.out.println("\nRunning Window Combiner");
+		
+		stat_str = DEFAULT;
+		log.addLine("Reading in files");
+		System.out.println("Reading in files");
+		importData(true);
 	}
 	
 	public void writeStats() throws FileParsingException {
@@ -106,8 +114,8 @@ public class Combiner {
 	
 	private void specificPrint(File out_file) throws FileNotFoundException {
 		
-		boolean i,x,h,dd,d,f;//,t,new
-		i = x = h = dd = d = f = false;//t = new = 
+		boolean i,x,h,dd,d,f,up,um,p,m;
+		i = x = h = dd = d = f = up = um = p = m = false;
 		
 		if(ssContains("i"))
 			i = true;
@@ -125,6 +133,14 @@ public class Combiner {
 		//	t = true;
 		//if(ssContains("new"))
 		//	new = true;
+		if(ssContains("up"))
+			up = true;
+		if(ssContains("um"))
+			um = true;
+		if(ssContains("p"))
+			p = true;
+		if(ssContains("m"))
+			m = true;
 		
 		PrintWriter pw = new PrintWriter(out_file);
 		pw.print("snp_id\tposition");
@@ -144,6 +160,14 @@ public class Combiner {
 		//	pw.print("\t"TajD");
 		//if(new)
 		//	pw.print("\t"New");
+		if(up)
+			pw.print("\tUnstd_PoP");
+		if(um)
+			pw.print("\tUnstd_MoP");
+		if(p)
+			pw.print("\tPoP");
+		if(m)
+			pw.print("\tMoP");
 		pw.print("\n");
 		
 		for(int j = 0; j < all_ws.size(); j++) {
@@ -170,9 +194,15 @@ public class Combiner {
 				//	pw.write("\t" + ws.getTajDScore(snp).toString());
 				//if(new)
 				//	pw.write("\t" + ws.getNewScore(snp).toString());
+				if(up)
+					pw.write("\t" + ws.getUnstdPopScore(snp).toString());
+				if(um)
+					pw.write("\t" + ws.getUnstdMopScore(snp).toString());
+				if(p)
+					pw.write("\t" + ws.getStdPopScore(snp).toString());
+				if(m)
+					pw.write("\t" + ws.getStdMopScore(snp).toString());
 				pw.write("\n");	
-				
-				
 			}
 		}
 		
@@ -182,7 +212,8 @@ public class Combiner {
 	private void simplePrint(File out_file) throws FileNotFoundException {
 		
 		PrintWriter pw = new PrintWriter(out_file);
-		pw.print("snp_id\tposition\tiHS\tXPEHH\tiHH\tdDAF\tDAF\tFst\n");
+		pw.print("snp_id\tposition\tiHS\tXPEHH\tiHH\tdDAF\tDAF\tFst"//\tTajD\tNew
+				+ "\tunstd_PoP\tunstd_MoP\twin_PoP\twin_MoP\n");
 		
 		for(int i = 0; i < all_ws.size(); i++)
 			pw.print(all_ws.get(i));
@@ -190,7 +221,7 @@ public class Combiner {
 		pw.close();
 	}
 	
-	private void importData() throws FileParsingException {
+	private void importData(boolean filter_incomplete_data) throws FileParsingException {
 		
 		String[] all_file_names = stats_dir.list();
 		
@@ -198,34 +229,30 @@ public class Combiner {
 			
 			File win_file = new File(stats_dir.getAbsolutePath() 
 					+ File.separator + all_file_names[i]);
-			addFile(win_file);
+			addWindowFile(win_file, filter_incomplete_data);
 		}
 	}
 	
-	private void importData(int dwn_rng, int up_rng) throws FileParsingException {
+	private void addWindowFile(File win_file, boolean filter_incomplete_data) throws FileParsingException {
 		
-		String[] all_files = stats_dir.list();
+		System.out.println("Combining Window:\t" + win_file.getName());
 		
-		for(int i = dwn_rng; i <= up_rng; i++) {
-			
-			File win_file = getWindowFile(i, all_files);
-			addFile(win_file);
-		}
-	}
-	
-	private void addFile(File win_file) throws FileParsingException {
-		
-		System.out.println("Combining Window:\t" + win_file.getName());//TODO: remove this
-		
-		if(win_file != null && win_file.exists()) {
+		if(win_file != null && win_file.exists() 
+				&& win_file.getName().charAt(0) != '.'
+				&& win_file.getName().contains("chr" + chr)) {
 			
 			int st_pos = getStart(win_file.getName());
 			int end_pos = getEnd(win_file.getName());
 			
 			WindowParser wp = new WindowParser(log, win_file, st_pos, end_pos);
-			WindowStats ws = wp.parseWindow();
+			WindowStats ws = wp.parseWindow(filter_incomplete_data);//TODO: make this so that ONLY data where all numbers are present are added
 			all_ws.add(ws);
 		}
+//		else {
+//			
+//			String msg = "Error: File " + win_file.getAbsolutePath() + " has incorrect name format";
+//			throw new FileParsingException(log, msg);
+//		}
 	}
 	
 	private int getEnd(String name) {
@@ -244,19 +271,6 @@ public class Combiner {
 		return Integer.parseInt(name.substring((st_indx + 2), end_indx));
 	}
 	
-	private File getWindowFile(int win_num, String[] all_file_names) {
-		
-		for(int i = 0; i < all_file_names.length; i++) {
-			
-			String name = all_file_names[i];
-			if(name.contains("win" + win_num + "_")) 
-				return new File(stats_dir.getAbsolutePath() + File.separator + name);
-		}
-		
-		log.addLine("\tWarning: Could not find window number " + win_num);
-		return null;
-	}
-	
 	private boolean ssContains(String stat) {
 		
 		for(int i = 0; i < stat_str.length; i++) {
@@ -267,35 +281,6 @@ public class Combiner {
 		return false;
 	}
 	
-	private int getUpRng(String range) throws IllegalInputException {
-		
-		String[] rng = range.split("-");
-		
-		try {
-			return Integer.parseInt(rng[1]);
-			
-		} catch(NumberFormatException e) {
-			String msg = "Error: Upper range bound argument " + range + " is invalid";
-			throw new IllegalInputException(log, msg);
-		}
-	}
-	
-	private int getDownRng(String range) throws IllegalInputException {
-		
-		String[] rng = range.split("-");
-		
-		try {
-			if(rng.length != 2)
-				throw new Exception();
-			
-			return Integer.parseInt(rng[0]);
-			
-		} catch(Exception e) {
-			String msg = "Error: Lower range bound argument " + range + " is invalid";
-			throw new IllegalInputException(log, msg);
-		}
-	}
-	
 	private String[] createStatString(String str) throws IllegalInputException {
 		
 		String[] fin_str = str.split(":");
@@ -304,7 +289,9 @@ public class Combiner {
 			
 			String s = fin_str[i];
 			if(!s.equals("i") && !s.equals("h") && !s.equals("x") 
-					&& !s.equals("d") && !s.equals("f") && !s.equals("dd")) {
+					&& !s.equals("d") && !s.equals("f") && !s.equals("dd")
+					&& !s.equals("up") && !s.equals("um") && !s.equals("p") 
+					&& !s.equals("m")) {
 				String msg = "Error: Input stat string has invalid characters or values";
 				throw new IllegalInputException(log, msg);
 			}

@@ -4,18 +4,10 @@ package analysis;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.NavigableSet;
-import java.util.SortedSet;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 import errors.FileParsingException;
 import errors.IllegalInputException;
@@ -31,9 +23,9 @@ public class Analyzer {
 	 * 
 	 * FOR WINDOW COMBINING AND NO STATS ANALYSIS
 	 * @param args0		window combining flag (
-	 * @param args0		out dir
-	 * @param args1		stats string ("i:h:x:d:f" or any combination of that)
-	 * @param args2		window range ("x-y")
+	 * @param args1		out dir
+	 * @param args2		chr
+	 * @param args3		stats string ("i:h:x:d:f" or any combination of that)
 	 * 
 	 * FOR STATS ANALYSIS ONLY
 	 * @param args0		out dir
@@ -50,6 +42,7 @@ public class Analyzer {
 			
 			if(type.equals("combine")) {
 				
+				//TODO: do this without range restraint
 				checkCombineArgs(args, log);
 				 
 				Combiner c = new Combiner(args[1], log);
@@ -140,18 +133,19 @@ public class Analyzer {
 		System.out.println("\nRunning Analysis");
 		System.out.println("Importing Sim Data");
 		
-		SimulationParser sp = new SimulationParser(log, sim_dir);
-		SimDist[] neutral_sim = sp.getNeutralSimulations();
-		SimDist[] select_sim = sp.getSelectedSimulations();
-		
-		log.addLine("Calculating Product and Mean of Scores");
-		System.out.println("Calculating Product and Mean of Scores");
-		for(int i = 0; i < all_ws.size(); i++) {
-			WindowStats cur_ws = all_ws.get(i);
-			
-			System.out.println("Analyzing window with positions:\t" + cur_ws.getStPos() + " to " + cur_ws.getEndPos());//TODO: remove this
-			calcCmsScores(cur_ws, neutral_sim, select_sim);
-		}
+		//TODO: Starting rewrite here...
+//		SimulationParser sp = new SimulationParser(log, sim_dir);
+//		SimDist[] neutral_sim = sp.getNeutralSimulations();
+//		SimDist[] select_sim = sp.getSelectedSimulations();
+//		
+//		log.addLine("Calculating Product and Mean of Scores");
+//		System.out.println("Calculating Product and Mean of Scores");
+//		for(int i = 0; i < all_ws.size(); i++) {
+//			WindowStats cur_ws = all_ws.get(i);
+//			
+//			System.out.println("Analyzing window with positions:\t" + cur_ws.getStPos() + " to " + cur_ws.getEndPos());//TODO: remove this
+//			calcCmsScores(cur_ws, neutral_sim, select_sim);
+//		}
 		
 		System.out.println("Analysis Finished");
 	}
@@ -325,7 +319,6 @@ public class Analyzer {
 		return null;
 	}
 	
-	@SuppressWarnings("unchecked")
 	private TreeMap<SNP, Double> normalizeData(TreeMap<SNP, Double> unstd_cms) {
 		
 		List<Double> all_values = new LinkedList<Double>();

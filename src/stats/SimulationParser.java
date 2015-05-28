@@ -1,13 +1,12 @@
-package analysis;
+package stats;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Scanner;
 
-import errors.FileParsingException;
+import errors.StatsCalcException;
 import tools.SimDist;
-import tools.Log;
 
 public class SimulationParser {
 	
@@ -16,39 +15,26 @@ public class SimulationParser {
 	private String neut_path = "sim_data" + File.separator + "neutral_simulation.tsv";
 	private String sel_path = "sim_data" + File.separator + "selection_simulation.tsv";
 	
-	private Log log;
-	
-	public SimulationParser(Log log, File sim_dir) {
+	public SimulationParser(File sim_dir) {
 		
 		this.neut_path = sim_dir.getAbsolutePath() + File.separator + "neutral_simulation.tsv";
 		this.sel_path = sim_dir.getAbsolutePath() + File.separator + "selection_simulation.tsv";
-		
-		this.log = log;
 	}
 	
-	public SimDist[] getNeutralSimulations() throws FileParsingException {
+	public SimDist[] getNeutralSimulations() throws StatsCalcException {
 		
 		return parseSimulatedData(neut_path);
 		
 	}
 	
-	public SimDist[] getSelectedSimulations() throws FileParsingException {
+	public SimDist[] getSelectedSimulations() throws StatsCalcException {
 		
 		return parseSimulatedData(sel_path);
 	}
 	
-	/*
-	 * Simulations and scores need to be stored into arrays where:
-	 * 		[0] = iHS data
-	 * 		[1] = iHH data
-	 * 		[2] = Fst data
-	 * 		[3] = DAF data
-	 * 		[4] = XPEHH data
-	 */
-	private SimDist[] parseSimulatedData(String file_path) throws FileParsingException {
+	private SimDist[] parseSimulatedData(String file_path) throws StatsCalcException {
 		
 		SimDist[] dists = createDistributions();
-		
 		
 		try {
 			Scanner scan = new Scanner(new File(file_path));
@@ -59,10 +45,12 @@ public class SimulationParser {
 				String[] vals = scan.nextLine().split("\\s+");
 				
 				if(vals.length != NUM_TESTS) {
-					String msg = "Error: Irregularities in number of simulated data columns";
-					throw new FileParsingException(log, msg);
+					String err_type = "NumTestError\tIrregularities in number of simulated data columns";
+					throw new StatsCalcException(err_type);
 				}
 				
+				//This function depends a lot on the way the sim file is set up
+				//AND the SimDist type values (it was engineered this way)
 				for(int i = 0; i < NUM_TESTS; i++) {
 					double val = Double.parseDouble(vals[i]);
 					dists[i].addSimValue(val);
@@ -70,11 +58,11 @@ public class SimulationParser {
 			}
 		
 		} catch (FileNotFoundException e) {
-			String msg = "Error: Could not find simulated data file";
-			throw new FileParsingException(log, msg);
+			String err_type = "IOError\tCould not find simulated data file";
+			throw new StatsCalcException(err_type);
 		} catch (NumberFormatException e) {
-			String msg = "Error: Invalid simulated data values";
-			throw new FileParsingException(log, msg);
+			String err_type = "ParsingError\tInvalid simulated data values";
+			throw new StatsCalcException(err_type);
 		}
 		
 		return dists;
@@ -85,18 +73,18 @@ public class SimulationParser {
 	 * 		[0] = iHS bounds [-6,6]
 	 * 		[1] = iHH bounds [-3,5]
 	 * 		[2] = Fst bounds [-1,6] 
-	 * 		[3] = DAF bounds [-1,1]
+	 * 		[3] = DDAF bounds [-1,1]
 	 * 		[4] = XPEHH bounds [-3,8]
 	 */
 	private SimDist[] createDistributions() {
 		
 		SimDist[] dists = new SimDist[NUM_TESTS];
 		
-		dists[0] = new SimDist(log, -6, 6);
-		dists[1] = new SimDist(log, -3, 5);
-		dists[2] = new SimDist(log, -1, 6);
-		dists[3] = new SimDist(log, -1, 1);
-		dists[4] = new SimDist(log, -3, 8);
+		dists[SimDist.IHS_TYPE] = new SimDist(-6, 6);
+		dists[SimDist.IHH_TYPE] = new SimDist(-3, 5);
+		dists[SimDist.FST_TYPE] = new SimDist(-1, 6);
+		dists[SimDist.DDAF_TYPE] = new SimDist(-1, 1);
+		dists[SimDist.XPEHH_TYPE] = new SimDist(-3, 8);
 		
 		return dists;
 	}

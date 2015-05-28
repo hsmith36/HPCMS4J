@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.util.List;
 
 import calc.*;
+import errors.StatsCalcException;
 import tools.*;
 
 public class StatsCalc {
@@ -18,8 +19,9 @@ public class StatsCalc {
 	 * @author Hayden Smith
 	 * 
 	 * @param args0		out dir
-	 * @param args1		chr
-	 * @param args2		window number
+	 * @param args1		sim dir
+	 * @param args2		chr
+	 * @param args3		window number
 	 */
 	public static void main(String[] args) {
 		
@@ -35,12 +37,24 @@ public class StatsCalc {
 			System.exit(0);
 		}
 		
+		File sim_dir = new File(args[1]);
+		if(!sim_dir.exists() && !sim_dir.isDirectory()) {
+			
+			Log log = new Log(Log.type.stat);
+			log.addLine("ERROR: Parameter for simulation file directory invalid");
+			log.addLine("\t*Go to api for more information");
+			log.addLine("\t*You will need to redo this entire step--all new data is invalid");
+			log.close();
+			
+			System.exit(0);
+		}
+		
 		int chr = -1;
 		int win_num = -1;
 		try {
 			
-			chr = Integer.parseInt(args[1]);
-			win_num = Integer.parseInt(args[2]);
+			chr = Integer.parseInt(args[2]);
+			win_num = Integer.parseInt(args[3]);
 			
 		} catch(NumberFormatException e) {
 			
@@ -59,10 +73,10 @@ public class StatsCalc {
 			System.out.println("Chromosome: " + chr);
 			System.out.println("Output Dir:" + out_dir);
 			
-			StatsCalc sc = new StatsCalc(out_dir, chr, win_num, log);
+			StatsCalc sc = new StatsCalc(out_dir, sim_dir, chr, win_num, log);
 			sc.runStats();
 			
-			System.out.println("Window complete!");
+			System.out.println("\nWindow Complete!");
 			log.addLine(win_num + "\tSuccessfulRun\twindow completed without any errors");
 			log.close();
 			
@@ -72,20 +86,35 @@ public class StatsCalc {
 			 log.close();
 			 
 			 System.exit(0);
-		 }
+		 } 
+//		catch(StatsCalcException e) {
+//			 log.addLine(win_num + "\t" + e.getErrorType());
+//			System.exit(0);
+//		 }
 	}
 	
+	//Threading variables
 	private static int WAIT_TIME = 50;
 	
+	//General information
 	private int chr;
 	private int win_num;
+	private Window tp_win;
+	private WindowStats ws;
 	
+	//IO Files
 	private File out_dir;
 	private File envi_dir;
 	private File win_dir;
+	private File sim_dir;
 	
-	private Window tp_win;
+	//Analysis options
+	private boolean deflt_prior = true;
+	private boolean ihs_abs = false;
+	private double daf_cutoff = 0.2;
+	private double prior_prob = 1 / (double) 10000;
 	
+	//Evolution calculators
 	private iHS i;
 	private iHH h;
 	private XPEHH x;
@@ -96,14 +125,37 @@ public class StatsCalc {
 	
 	private Log log;
 	
-	public StatsCalc(File out_dir, int chr, int win_num, Log log) {
+	/**
+	 * Default constructor that uses default analysis options
+	 * 
+	 * @param out_dir
+	 * @param sim_dir
+	 * @param chr
+	 * @param win_num
+	 * @param log
+	 */
+	public StatsCalc(File out_dir, File sim_dir, int chr, int win_num, Log log) {
 		
 		tp_win = null;
+		ws = null;
 		
 		this.chr = chr;
 		this.win_num = win_num;
 		this.out_dir = out_dir;
+		this.sim_dir = sim_dir;
 		this.log = log;
+	}
+	
+	/**
+	 * Calls main constructor but allows for options
+	 * 
+	 * @param options
+	 */
+	public StatsCalc(File out_dir, File sim_dir, int chr, int win_num, Object[] options, Log log) {
+		
+		this(out_dir, sim_dir, chr, win_num, log);
+		
+		//TODO: parse options... with Jon
 	}
 	
 	public void runStats() {
@@ -114,31 +166,26 @@ public class StatsCalc {
 		
 		doCalculations();
 		
+		setWindowStats();
+		
 		writeOutput();
 	}
 	
 	private void writeOutput() {
 		
+		System.out.println("Writing Output");
+		
 		try {
 			
-			File win_stats = new File(out_dir.getAbsoluteFile() + File.separator 
+			File win_stats_file = new File(out_dir.getAbsoluteFile() + File.separator 
 					+ "win" + win_num + "_" + "chr" + chr + "_s" 
 					+ tp_win.getStPos() + "-e" + tp_win.getEndPos() + ".tsv");
-			win_stats.createNewFile();
+			win_stats_file.createNewFile();
 			
-			WindowStats ws = new WindowStats(tp_win.getStPos(), tp_win.getEndPos());
+			PrintWriter pw = new PrintWriter(win_stats_file);
+			pw.print("snp_id\tposition\tiHS\tXPEHH\tiHH\tdDAF\tDAF\tFst"//\tTajD\tNew
+					+ "\tunstd_PoP\tunstd_MoP\twin_PoP\twin_MoP\n");
 			
-			ws.setIHS(i.getStats(), i.getSNPs());
-			ws.setIHH(h.getStats(), h.getSNPs());
-			ws.setXPEHH(x.getStats(), x.getSNPs());
-			ws.setDDAF(d.getStats(), d.getSNPs());
-			ws.setDAF(d.getDafStats(), d.getSNPs());
-			ws.setFst(f.getStats(), f.getSNPs());
-			//ws.setTAJD(t.getStats(), t.getSNPs());
-			//ws.setNEW(new.getStats(), new.getSNPs());
-			
-			PrintWriter pw = new PrintWriter(win_stats);
-			pw.print("snp_id\tposition\tiHS\tXPEHH\tiHH\tdDAF\tDAF\tFst\n");//\tTajD\tNew
 			pw.print(ws);
 			pw.close();
 			
@@ -148,29 +195,111 @@ public class StatsCalc {
 		}
 	}
 	
+	private void setWindowStats() {
+		
+		System.out.println("Saving Evolutionary Stats and Calculating Composite Scores");
+		
+		ws = new WindowStats(tp_win.getStPos(), tp_win.getEndPos());
+		
+		ws.setIHS(i.getStats(), i.getSNPs());
+		ws.setIHH(h.getStats(), h.getSNPs());
+		ws.setXPEHH(x.getStats(), x.getSNPs());
+		ws.setDDAF(d.getStats(), d.getSNPs());
+		ws.setDAF(d.getDafStats(), d.getSNPs());
+		ws.setFST(f.getStats(), f.getSNPs());
+		//ws.setTAJD(t.getStats(), t.getSNPs());
+		//ws.setNEW(new.getStats(), new.getSNPs());
+		
+		calcCompositeScores();
+		
+		ws.normalizeUnstdCompositeScores();
+	}
+	
+	private void calcCompositeScores() {
+		
+		/*
+		 * Structure of score_probs:
+		 *  	[0] = iHS data
+		 * 		[1] = iHH data
+		 * 		[2] = Fst data
+		 * 		[3] = dDAF data
+		 * 		[4] = XPEHH data
+		 * NOTE: new scores (like TajD) do not have simulations thus are not included in these scores
+		 */
+		final int NUM_TESTS = 5;
+		Double[] score_probs = new Double[NUM_TESTS];
+		
+		List<SNP> all_snps = ws.getAllSNPs();
+		for(int j = 0; j < all_snps.size(); j++) {
+			
+			SNP s = all_snps.get(j);
+			
+			score_probs[0] = i.getProbAtSNP(s);
+			score_probs[1] = h.getProbAtSNP(s);
+			score_probs[2] = f.getProbAtSNP(s);
+			score_probs[3] = d.getProbAtSNP(s);
+			score_probs[4] = x.getProbAtSNP(s);
+			
+			ws.addUnstdPopScore(s, productOfScores(score_probs, s));
+			ws.addUnstdMopScore(s, meanOfScores(score_probs, s));
+		}
+	}
+	
+	private Double productOfScores(Double[] score_probs, SNP s) {
+		
+		Double prod_score = 1.0;
+		
+		for(int i = 0; i < score_probs.length; i++) {
+			if(score_probs[i] != null && ws.getDafScore(s) >= daf_cutoff)
+				prod_score = prod_score*score_probs[i];
+			else
+				return Double.NaN;
+		}
+		
+		return prod_score;
+	}
+	
+	private Double meanOfScores(Double[] score_probs, SNP s) {
+		
+		int tot_tests = score_probs.length;
+		Double score = 0.0;
+		for(int i = 0; i < score_probs.length; i++) {
+			
+			if(score_probs[i] != null 
+					&& (daf_cutoff == 0.0 || ws.getDafScore(s) >= daf_cutoff))
+				score += score_probs[i];
+			else
+				tot_tests--;
+		}
+		
+		return score / tot_tests;
+	}
+	
 	private void doCalculations() {
 			
+		System.out.println("Running Threads");
+		
 		Object lock = new Object();
 		
 		try {
 		
-			StatsThread i_thrd = new StatsThread(i, lock);
+			StatsThread i_thrd = new StatsThread(log, i, win_num, lock);
 			Thread.sleep(WAIT_TIME);
 			i_thrd.start();
 			
-			StatsThread h_thrd = new StatsThread(h, lock);
+			StatsThread h_thrd = new StatsThread(log, h, win_num, lock);
 			Thread.sleep(WAIT_TIME);
 			h_thrd.start();
 			
-			StatsThread x_thrd = new StatsThread(x, lock);
+			StatsThread x_thrd = new StatsThread(log, x, win_num, lock);
 			Thread.sleep(WAIT_TIME);
 			x_thrd.start();
 			
-			StatsThread d_thrd = new StatsThread(d, lock);
+			StatsThread d_thrd = new StatsThread(log, d, win_num, lock);
 			Thread.sleep(WAIT_TIME);
 			d_thrd.start();
 			
-			StatsThread f_thrd = new StatsThread(f, lock); 
+			StatsThread f_thrd = new StatsThread(log, f, win_num, lock); 
 			Thread.sleep(WAIT_TIME);
 			f_thrd.start();
 			
@@ -219,7 +348,10 @@ public class StatsCalc {
 	@SuppressWarnings("unchecked")
 	private void createCalculators() {
 		
+		System.out.println("Creating Calculators");
+		
 		try {
+			//Read in saved environment variables from hard disk
 			String path = "";
 			
 			path = getEnviFileName("target_pop_wins.bin");
@@ -258,11 +390,32 @@ public class StatsCalc {
 			path = getTargetXCrossWindowFileName();
 			Window txin_win = (Window) getObject(path);
 			
-			i = new iHS(tp_win, tp_indv, anc_types, tp_wins, gm);
-			h = new iHH(tp_win, tp_indv, anc_types, tp_wins, gm);
-			x = new XPEHH(txin_win, txin_wins, tp_inx_indv, xp_int_indv, gm);
-			d = new dDAF(tp_win, tp_indv, xoin_wins, xp_ino_indv, op_inx_indv, anc_types);
-			f = new Fst(txin_win, tp_inx_indv, xp_int_indv, op_inx_indv);
+			//Create simulations
+			SimulationParser sp = new SimulationParser(sim_dir);
+			SimDist[] neut_sim_arr = sp.getNeutralSimulations();
+			SimDist[] sel_sim_arr = sp.getSelectedSimulations();
+			
+			//Instantiate Selection Tests
+			i = new iHS(tp_win, tp_indv, anc_types, tp_wins, gm, 
+					neut_sim_arr[SimDist.IHS_TYPE], sel_sim_arr[SimDist.IHS_TYPE],
+					ihs_abs, deflt_prior, prior_prob);
+			
+			h = new iHH(tp_win, tp_indv, anc_types, tp_wins, gm, 
+					neut_sim_arr[SimDist.IHH_TYPE], sel_sim_arr[SimDist.IHH_TYPE],
+					deflt_prior, prior_prob);
+			
+			x = new XPEHH(txin_win, txin_wins, tp_inx_indv, xp_int_indv, gm, 
+					neut_sim_arr[SimDist.XPEHH_TYPE], sel_sim_arr[SimDist.XPEHH_TYPE],
+					deflt_prior, prior_prob);
+			
+			d = new dDAF(tp_win, tp_indv, xoin_wins, xp_ino_indv, op_inx_indv, anc_types, 
+					neut_sim_arr[SimDist.DDAF_TYPE], sel_sim_arr[SimDist.DDAF_TYPE],
+					deflt_prior, prior_prob);
+			
+			f = new Fst(txin_win, tp_inx_indv, xp_int_indv, op_inx_indv, 
+					neut_sim_arr[SimDist.FST_TYPE], sel_sim_arr[SimDist.FST_TYPE],
+					deflt_prior, prior_prob);
+			
 			//t = new TajD(args0, args1, ..., argsx);
 			//new = new NewStat(args0, args1, ..., argsx);
 			
@@ -274,6 +427,9 @@ public class StatsCalc {
 			System.exit(0);
 		} catch (ClassCastException e) {
 			log.addLine(win_num + "\tCastingError\tObject casting invalid while loading envi");
+			System.exit(0);
+		} catch (StatsCalcException e) {
+			log.addLine(win_num + "\t" + e.getErrorType());
 			System.exit(0);
 		}
 	}
@@ -348,13 +504,19 @@ class StatsThread extends Thread {
 
 	private final Object lock;
 	
+	private int win_num;
+	
+	private Log log;
 	private Thread thrd;
 	private HaplotypeTests tst;
 	
-	volatile private boolean finished; //volatile says that some other thread could change this value
+	volatile private boolean finished; //volatile means that some other thread could change this value
 	
-	StatsThread(HaplotypeTests tst, Object lock) {
+	StatsThread(Log log, HaplotypeTests tst, int win_num, Object lock) {
+		
+		this.log = log;
 		this.tst = tst;
+		this.win_num = win_num;
 		this.lock = lock;
 		
 		finished = false;
@@ -370,7 +532,12 @@ class StatsThread extends Thread {
 	@Override
 	public void run() {
 		
-		tst.runStat();	
+		try {
+			tst.runStat();
+		} catch (StatsCalcException e) {
+			log.addLine(win_num + "\t" + e.getErrorType());
+			System.exit(0);
+		}	
 		
 		synchronized(lock) {
 			finished = true;
