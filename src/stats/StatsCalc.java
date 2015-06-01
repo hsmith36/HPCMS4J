@@ -6,8 +6,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.List;
 
+import net.sourceforge.argparse4j.ArgumentParsers;
+import net.sourceforge.argparse4j.impl.Arguments;
+import net.sourceforge.argparse4j.inf.ArgumentParser;
+import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import calc.*;
 import errors.StatsCalcException;
 import tools.*;
@@ -18,80 +23,137 @@ public class StatsCalc {
 	 * This program calculated the stats that are used in CMS analysis
 	 * @author Hayden Smith
 	 * 
-	 * @param args0		out dir
-	 * @param args1		sim dir
-	 * @param args2		chr
-	 * @param args3		window number
+	 * @param args	Required	SelecT workspace
+	 * @param args	Required	Simulations directory
+	 * @param args	Required	Chromosome number
+	 * @param args	Required	Window number
+	 * @param args	Optional	iHS absolute value probability (--ihs_abs flag)
+	 * @param args	Optional	DAF cutoff (--daf_cutoff flag; default is 0.2)
+	 * @param args	Optional	Prior Probability (--prior_prob flag; default without flag is number of SNPs in window)
 	 */
 	public static void main(String[] args) {
 		
-		File out_dir = new File(args[0]);
-		if(!out_dir.exists() && !out_dir.isDirectory()) {
-			
-			Log log = new Log(Log.type.stat);
-			log.addLine("ERROR: Parameter for out file directory invalid");
-			log.addLine("\t*Go to api for more information");
-			log.addLine("\t*You will need to redo this entire step--all new data is invalid");
-			log.close();
-			
-			System.exit(0);
-		}
+		HashMap<String, Object> arg_map = setupArgs(args);
 		
-		File sim_dir = new File(args[1]);
-		if(!sim_dir.exists() && !sim_dir.isDirectory()) {
-			
-			Log log = new Log(Log.type.stat);
-			log.addLine("ERROR: Parameter for simulation file directory invalid");
-			log.addLine("\t*Go to api for more information");
-			log.addLine("\t*You will need to redo this entire step--all new data is invalid");
-			log.close();
-			
-			System.exit(0);
-		}
+		File wrk_dir = (File) arg_map.get("wrk_dir");
+		Log log = new Log(Log.type.stat, wrk_dir.getName());
 		
-		int chr = -1;
-		int win_num = -1;
 		try {
+			System.out.println("Running Window:\t\t" + arg_map.get("win_num"));
+			System.out.println("Chromosome:\t\t" + arg_map.get("chr"));
+			System.out.println("SelecT Workspace:\t" + wrk_dir);
 			
-			chr = Integer.parseInt(args[2]);
-			win_num = Integer.parseInt(args[3]);
-			
-		} catch(NumberFormatException e) {
-			
-			Log log = new Log(Log.type.stat);
-			log.addLine("ERROR: Parameters for chr and/or window number invalid");
-			log.addLine("\t*Go to api for more information");
-			log.addLine("\t*You will need to redo this entire step--all new data is invalid");
-			log.close();
-			
-			System.exit(0);
-		}
-		
-		Log log = new Log(Log.type.stat, out_dir.getName());
-		try {
-			System.out.println("Running Window: " + win_num);
-			System.out.println("Chromosome: " + chr);
-			System.out.println("Output Dir:" + out_dir);
-			
-			StatsCalc sc = new StatsCalc(out_dir, sim_dir, chr, win_num, log);
+			StatsCalc sc = new StatsCalc(arg_map, log);
 			sc.runStats();
 			
 			System.out.println("\nWindow Complete!");
-			log.addLine(win_num + "\tSuccessfulRun\twindow completed without any errors");
+			log.addLine(arg_map.get("win_num") + "\tSuccessfulRun\twindow completed without any errors");
 			log.close();
 			
 		 } catch(OutOfMemoryError e) {
 			 
-			 log.addLine(win_num + "\tNoMemoryError\tinsufficient memory for running this window");
+			 log.addLine(arg_map.get("win_num") + "\tNoMemoryError\tinsufficient memory for running this window");
 			 log.close();
 			 
 			 System.exit(0);
 		 } 
-//		catch(StatsCalcException e) {
-//			 log.addLine(win_num + "\t" + e.getErrorType());
-//			System.exit(0);
-//		 }
 	}
+	
+	private static HashMap<String, Object> setupArgs(String[] args) {
+		
+		ArgumentParser parser = ArgumentParsers.newArgumentParser("StatsCalc")
+				.defaultHelp(true)
+                .description("Run evolution statistics and calculate composite scores");
+		
+		//Creating required arguments
+		parser.addArgument("wrk_dir").type(Arguments.fileType().verifyIsDirectory()
+                .verifyCanRead()).help("SelecT workspace directory");
+		
+		parser.addArgument("sim_dir").type(Arguments.fileType().verifyIsDirectory()
+                .verifyCanRead()).help("Directory where simulations are saved");
+		
+		parser.addArgument("chr").type(Integer.class).choices(Arguments.range(1, 22))
+				.help("Chromosome number");
+		
+		parser.addArgument("win_num").type(Integer.class).choices(Arguments.range(1, 22))
+				.help("Window number for current analysis");
+		
+		//Creating optional arguments
+		parser.addArgument("--ihs_abs").action(Arguments.storeTrue())
+				.help("Runs iHS score probabilities where large positive AND negative "
+						+ "scores equate to greater selection. If not included, defaults to large "
+						+ "negative scores begin associated with selection");
+		
+		//na: deflt_prior = true | # of snps in window as prior; prior_prob doesn't matter
+		//--prior_prob: deflt_prior = false, prior_prob = 0.0001 | not dynamic, use prior of 1/10000, these are Broad's parameters
+		//--prior_prob X: deflt_prior = false, prior_prob = X | completely custom prior probability
+		parser.addArgument("--prior_prob").nargs("?").setConst(0.0001).setDefault(-1.0).type(Double.class)
+				.help("Sets the prior probability for bayesian score probability analysis. "
+						+ "If not included, defaults to 1/10000 or 0.0001");
+		
+		parser.addArgument("-dc", "--daf_cutoff").type(Double.class).setDefault(0.2)
+        		.help("Sets the Derived Allele Frequency cutoff for compose score calculation. "
+        				+ "If not included, defaults to a frequency of 0.2");
+		
+		//Parsing user-inputed arguments
+		HashMap<String, Object> parsedArgs = new HashMap<String, Object>();
+		
+		//Checking to make sure input is correct
+		try {parser.parseArgs(args, parsedArgs);}
+    	catch (ArgumentParserException e) {
+    		System.out.println("Fatal error in argument parsing: see log");
+            e.printStackTrace();
+            
+            Log err_log = new Log(Log.type.stat);
+            err_log.addLine("Error: Failed to parse arguments"); 
+            err_log.addLine("\t*" + e.getMessage());
+            err_log.addLine("\t*Go to api for more information");
+			err_log.addLine("\t*You will need to redo this entire step--all new data is invalid");
+			
+			System.exit(0);
+        }
+		
+		File sim_dir = (File) parsedArgs.get("sim_dir");
+		String[] sim_files = sim_dir.list();
+		boolean contains_neut = false;
+		boolean contains_sel = false;
+		for(int i = 0; i < sim_files.length; i++) {
+			if(sim_files[i].equals("neutral_simulation.tsv"))
+				contains_neut= true;
+			if(sim_files[i].equals("selection_simulation.tsv"))
+				contains_sel = true;
+		}
+		
+		if(!contains_neut || !contains_sel) {
+			
+			System.out.println("Fatal error in argument parsing: see log");
+			System.out.println("Could not find required simulations");
+			
+			Log err_log = new Log(Log.type.stat);
+			err_log.addLine("Error: Could not find specific simulations for analysis");
+			err_log.addLine("\t*Go to api for more information");
+			err_log.addLine("\t*You will need to redo this entire step--all new data is invalid");
+			
+			System.exit(0);
+		}
+		
+		if((Double) parsedArgs.get("daf_cutoff") >= 1.0) {
+			
+			System.out.println("Fatal error in argument parsing: see log");
+			System.out.println("Illegal DAF cutoff value");
+			
+			Log err_log = new Log(Log.type.stat);
+			err_log.addLine("Error: DAF cutoff " + parsedArgs.get("daf_cutoff") + " is out of bounds");
+			err_log.addLine("\t*Go to api for more information");
+			err_log.addLine("\t*You will need to redo this entire step--all new data is invalid");
+			
+			System.exit(0);
+		}
+		
+		return parsedArgs;
+	}
+	
+	
 	
 	//Threading variables
 	private static int WAIT_TIME = 50;
@@ -103,16 +165,16 @@ public class StatsCalc {
 	private WindowStats ws;
 	
 	//IO Files
-	private File out_dir;
+	private File wrk_dir;
 	private File envi_dir;
 	private File win_dir;
 	private File sim_dir;
 	
 	//Analysis options
-	private boolean deflt_prior = true;
-	private boolean ihs_abs = false;
-	private double daf_cutoff = 0.2;
-	private double prior_prob = 1 / (double) 10000;
+	private boolean deflt_prior;//def = true
+	private boolean ihs_abs;//def = true
+	private double daf_cutoff;//def = .2
+	private double prior_prob;//def = 1 / (double) 10000
 	
 	//Evolution calculators
 	private iHS i;
@@ -125,37 +187,46 @@ public class StatsCalc {
 	
 	private Log log;
 	
-	/**
-	 * Default constructor that uses default analysis options
-	 * 
-	 * @param out_dir
-	 * @param sim_dir
-	 * @param chr
-	 * @param win_num
-	 * @param log
-	 */
-	public StatsCalc(File out_dir, File sim_dir, int chr, int win_num, Log log) {
+//	/**
+//	 * Default constructor that uses default analysis options
+//	 * 
+//	 * @param wrk_dir
+//	 * @param sim_dir
+//	 * @param chr
+//	 * @param win_num
+//	 * @param log
+//	 */
+//	public StatsCalc(File wrk_dir, File sim_dir, int chr, int win_num, Log log) {
+//		
+//		tp_win = null;
+//		ws = null;
+//		
+//		this.chr = chr;
+//		this.win_num = win_num;
+//		this.wrk_dir = wrk_dir;
+//		this.sim_dir = sim_dir;
+//		this.log = log;
+//	}
+//	
+//	/**
+//	 * Calls main constructor but allows for options
+//	 * 
+//	 * @param options
+//	 */
+//	public StatsCalc(File wrk_dir, File sim_dir, int chr, int win_num, Object[] options, Log log) {
+//		
+//		this(wrk_dir, sim_dir, chr, win_num, log);
+//		
+//	}
+	
+	public StatsCalc(HashMap<String, Object> argMap, Log log) {
 		
 		tp_win = null;
 		ws = null;
 		
-		this.chr = chr;
-		this.win_num = win_num;
-		this.out_dir = out_dir;
-		this.sim_dir = sim_dir;
 		this.log = log;
-	}
-	
-	/**
-	 * Calls main constructor but allows for options
-	 * 
-	 * @param options
-	 */
-	public StatsCalc(File out_dir, File sim_dir, int chr, int win_num, Object[] options, Log log) {
 		
-		this(out_dir, sim_dir, chr, win_num, log);
-		
-		//TODO: parse options... with Jon
+		setArgs(argMap);
 	}
 	
 	public void runStats() {
@@ -177,7 +248,7 @@ public class StatsCalc {
 		
 		try {
 			
-			File win_stats_file = new File(out_dir.getAbsoluteFile() + File.separator 
+			File win_stats_file = new File(wrk_dir.getAbsoluteFile() + File.separator 
 					+ "win" + win_num + "_" + "chr" + chr + "_s" 
 					+ tp_win.getStPos() + "-e" + tp_win.getEndPos() + ".tsv");
 			win_stats_file.createNewFile();
@@ -482,21 +553,38 @@ public class StatsCalc {
 	
 	private void setupFiles() {
 		
-		envi_dir = new File(out_dir.getAbsoluteFile() + File.separator + "envi_files" + File.separator + "envi_var");
+		envi_dir = new File(wrk_dir.getAbsoluteFile() + File.separator + "envi_files" + File.separator + "envi_var");
 		if(!envi_dir.exists() && !envi_dir.isDirectory()) {
 			log.addLine(win_num + "\tEnviDirError\tCould not find the evironment directory; check api for path names");
 			System.exit(0);
 		}
 		
-		win_dir = new File(out_dir.getAbsoluteFile() + File.separator + "envi_files" + File.separator + "all_wins");
+		win_dir = new File(wrk_dir.getAbsoluteFile() + File.separator + "envi_files" + File.separator + "all_wins");
 		if(!win_dir.exists() && !win_dir.isDirectory()) {
 			log.addLine(win_num + "\tWindowDirError\tCould not find the windows directory; check api for path names");
 			System.exit(0);
 		}
 		
-		out_dir = new File(out_dir.getAbsolutePath() + File.separator + "stats_files");
-		if(!out_dir.exists())
-			out_dir.mkdirs();
+		wrk_dir = new File(wrk_dir.getAbsolutePath() + File.separator + "stats_files");
+		if(!wrk_dir.exists())
+			wrk_dir.mkdirs();
+	}
+	
+	private void setArgs(HashMap<String, Object> args) {
+		
+		chr = (Integer) args.get("chr");
+		win_num = (Integer) args.get("win_num");
+		wrk_dir = (File) args.get("wrk_dir");
+		sim_dir = (File) args.get("sim_dir");
+		
+		daf_cutoff = (Double) args.get("daf_cutoff");
+		ihs_abs = (Boolean) args.get("ihs_abs");
+		
+		prior_prob = (Double) args.get("prior_prob");
+		if(prior_prob == -1.0) 
+			deflt_prior = true;
+		else
+			deflt_prior = false;
 	}
 }
 

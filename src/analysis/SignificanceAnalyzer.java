@@ -24,11 +24,12 @@ public class SignificanceAnalyzer {
 	 * @param args0		window combining flag ("combiner")
 	 * @param args1		out dir
 	 * @param args2		chr
-	 * @param args3		stats string ("i:h:x:d:f" or any combination of that)
+	 * @param args3		stats string ("i:h:x:d:f" or any combination of that) (optional)
 	 * 
 	 * FOR STATS ANALYSIS ONLY
 	 * @param args0		out dir
 	 * @param args1		chr
+	 * @param args2		p-value (optional)
 	 */
 	public static void main(String[] args) {
 		
@@ -60,13 +61,13 @@ public class SignificanceAnalyzer {
 			if(type.equals("combine")) {
 				
 				checkCombineArgs(args, log);
-				File out_dir = new File(args[1]);
-				if(!out_dir.isDirectory()) {
+				File wrk_dir = new File(args[1]);
+				if(!wrk_dir.isDirectory()) {
 					String msg = "Error: Output directory path does not exist";
 					throw new IllegalInputException(log, msg);
 				}
 				
-				Combiner c = new Combiner(out_dir, chr, log);
+				Combiner c = new Combiner(wrk_dir, chr, log);
 				
 				if(args.length == 3)
 					c.combineWindows();
@@ -78,19 +79,75 @@ public class SignificanceAnalyzer {
 			else {
 				
 				checkStatsAnalArgs(args, log);
-				File out_dir = new File(args[0]);
-				if(!out_dir.isDirectory()) {
+				File wrk_dir = new File(args[0]);
+				if(!wrk_dir.isDirectory()) {
 					String msg = "Error: Output directory path does not exist";
 					throw new IllegalInputException(log, msg);
 				}
 				
-				Combiner c = new Combiner(out_dir, chr, log);
-				c.combineAnalysisData();
-				c.writeStats();//TODO: create a flag to skip this step
+				double p_val = 0.01;//TODO: allow for p-value exploration (default = 0.01)
+				boolean write_all_win_to_one_file = false;
+				boolean run_normalization = false;
+				boolean ignore_mop = false;
+				boolean ignore_pop = false;
+				try {
+					p_val = Double.parseDouble(args[2]);
+					
+					if(args[3].equals("T"))
+						write_all_win_to_one_file = true;
+					else if(args[3].equals("F"))
+						write_all_win_to_one_file = false;
+					else {
+						String msg = "The fourth argument is in illegal format";
+						throw new IllegalInputException(log, msg);
+					}
+					
+					if(args[4].equals("T"))
+						run_normalization = true;
+					else if(args[4].equals("F"))
+						run_normalization = false;
+					else {
+						String msg = "The fifth argument is in illegal format";
+						throw new IllegalInputException(log, msg);
+					}
+					
+					if(args[5].equals("T"))
+						ignore_mop = true;
+					else if(args[5].equals("F"))
+						ignore_mop = false;
+					else {
+						String msg = "The sixth argument is in illegal format";
+						throw new IllegalInputException(log, msg);
+					}
+					
+					if(args[6].equals("T"))
+						ignore_pop = true;
+					else if(args[6].equals("F"))
+						ignore_pop = false;
+					else {
+						String msg = "The seventh argument is in illegal format";
+						throw new IllegalInputException(log, msg);
+					}
+					
+					if(ignore_mop && ignore_pop) {//TODO: make this case an either or situation
+						String msg = "Error: Ignoring both MoP and PoP scores is an invalid request for analysis";
+						throw new IllegalInputException(log, msg);
+					}
+					
+				} catch(NumberFormatException e) {
+					String msg = "Error: Invalid p-value input";
+					throw new IllegalInputException(log, msg);
+				}
 				
-				System.out.println("\n\nStarting Analysis");
-				SignificanceAnalyzer sa = new SignificanceAnalyzer(log, 0.03, c.getAllStats(), out_dir);//p-val is a optional variable
-				sa.findSignificantSNPs(false, false);//TODO: incorporate these flags
+				Combiner c = new Combiner(wrk_dir, chr, log);
+				c.combineAnalysisData();
+				
+				if(write_all_win_to_one_file)
+					c.writeStats();
+				
+				System.out.println("\nStarting Analysis");
+				SignificanceAnalyzer sa = new SignificanceAnalyzer(log, p_val, c.getAllStats(), wrk_dir);
+				sa.findSignificantSNPs(run_normalization, ignore_mop, ignore_pop);
 			}
 			 
 		} catch (Exception e) {
@@ -102,12 +159,14 @@ public class SignificanceAnalyzer {
 			
 			e.printStackTrace();
 		}	
+		
+		System.out.println("\n\nSelecT significance analysis finished!");
 	}
 	
 	private static void checkStatsAnalArgs(String[] args, Log log) 
 			throws IllegalInputException {
 		
-		if(args.length != 2) {
+		if(args.length != 7) {
 			String msg = "Error: Parameter length incorrect";
 			throw new IllegalInputException(log, msg);
 		}
@@ -115,6 +174,7 @@ public class SignificanceAnalyzer {
 		log.addLine("Working Parameters");
 		log.addLine("Output Dir:\t" + args[0]);
 		log.addLine("Chromosome:\t" + args[1]);
+		log.addLine("p-Value:\t" + args[2]);
 	}
 	
 	private static void checkCombineArgs(String[] args, Log log) 
@@ -139,33 +199,36 @@ public class SignificanceAnalyzer {
 	
 	private Log log;
 	
-	public SignificanceAnalyzer(Log log, double sig_pval, List<WindowStats> all_ws, File out_dir) {
+	public SignificanceAnalyzer(Log log, double sig_pval, List<WindowStats> all_ws, File wrk_dir) {
 		
 		this.log = log;
 		this.all_ws = all_ws;
 		
 		sig_score = pToZ(sig_pval);
 		
-		System.out.println(sig_pval + "\t" + sig_score);
+		System.out.println("p-value:\t\t" + sig_pval);
+		System.out.println("Significant Score:\t" + sig_score);
 		
-		out_dir = new File(out_dir.getAbsolutePath() + File.separator + "final_out");
-		if(!out_dir.exists())
-			out_dir.mkdir();
-		out_file = new File(out_dir.getAbsoluteFile() + File.separator + "significant_loci.tsv");
+		wrk_dir = new File(wrk_dir.getAbsolutePath() + File.separator + "final_out");
+		if(!wrk_dir.exists())
+			wrk_dir.mkdir();
+		out_file = new File(wrk_dir.getAbsoluteFile() + File.separator + "significant_loci.tsv");
 		int num = 1;
 		while(out_file.exists()) {
-			out_file = new File(out_dir.getAbsoluteFile() + File.separator 
+			out_file = new File(wrk_dir.getAbsoluteFile() + File.separator 
 					+ "significant_loci" + num + ".tsv");
 			num++;
 		}
 	}
 	
-	public void findSignificantSNPs(boolean run_normalization, boolean filter_mop_pop) throws IllegalInputException {
+	public void findSignificantSNPs(boolean run_normalization, boolean ignore_mop, boolean ignore_pop) throws IllegalInputException {
 		
 		if(run_normalization) 
 			all_ws = normalizeAllWindows(all_ws);
 		
 		try {
+			
+			System.out.println("Extracting significant loci");
 			
 			PrintWriter pw = new PrintWriter(out_file);
 			pw.print("snp_id\tposition\tiHS\tXPEHH\tiHH\tdDAF\tDAF\tFst"//\tTajD\tNew
@@ -178,16 +241,17 @@ public class SignificanceAnalyzer {
 				
 				for(int j = 0; j < ws_snps.size(); j++) {
 					
-					if(filter_mop_pop) {
+					if(ignore_mop) {
+						if(ws.getStdPopScore(ws_snps.get(j)) >= sig_score)
+							pw.print(ws.printSNP(ws_snps.get(j)));
+					} else if(ignore_pop) {
+						if(ws.getStdMopScore(ws_snps.get(j)) >= sig_score)
+							pw.print(ws.printSNP(ws_snps.get(j)));
+					} else {
 						if(ws.getStdPopScore(ws_snps.get(j)) >= sig_score
 								&& ws.getStdMopScore(ws_snps.get(j)) >= sig_score)
 							pw.print(ws.printSNP(ws_snps.get(j)));
 					}
-					else {
-						if(ws.getStdPopScore(ws_snps.get(j)) >= sig_score)
-							pw.print(ws.printSNP(ws_snps.get(j)));
-					}
-					
 				}
 			}
 			

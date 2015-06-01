@@ -46,31 +46,31 @@ public class Log {
 			
 			if(type == Log.type.envi) {
 				
-				log_file = createLogFile("Envi_Log", true);
+				log_file = createLogFile("envi_log", true);
 				wr = new PrintWriter(log_file);
 				add(ENVI_ST);
 				
 			} else if(type == Log.type.stat) {
 				
-				log_file = createLogFile("Stats_ERROR", false);
+				log_file = createLogFile("stats_ERROR", false);
 				wr = new PrintWriter(log_file);
 				add(STAT_ST);
 				
 			} else if(type == Log.type.analysis) {
 				
-				log_file = createLogFile("Analysis_Log", true);
+				log_file = createLogFile("analysis_log", true);
 				wr = new PrintWriter(log_file);
 				add(ANAL_ST);
 				
 			} else if(type == Log.type.combine) {
 				
-				log_file = createLogFile("Combine_Log", true);
+				log_file = createLogFile("combine_log", true);
 				wr = new PrintWriter(log_file);
 				add(COMB_ST);
 				
 			} else {
 				
-				log_file = createLogFile("Log", true);
+				log_file = createLogFile("log", true);
 				wr = new PrintWriter(log_file);
 				add(DEF_ST);
 			}
@@ -92,7 +92,7 @@ public class Log {
 				//TODO: throw new error
 			}
 			
-			log_file = new File("Stats_Log_" + name + ".txt");
+			log_file = new File("stats_log_" + name + ".txt");
 			if(!log_file.exists()) {
 				
 				log_file.createNewFile();

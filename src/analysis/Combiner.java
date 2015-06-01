@@ -81,6 +81,8 @@ public class Combiner {
 	
 	public void writeStats() throws FileParsingException {
 		
+		System.out.println("Writing combined windows");
+		
 		try {
 			out_dir = new File(out_dir.getAbsolutePath() + File.separator + "final_out");
 			if(!out_dir.exists())
@@ -235,11 +237,13 @@ public class Combiner {
 	
 	private void addWindowFile(File win_file, boolean filter_incomplete_data) throws FileParsingException {
 		
-		System.out.println("Combining Window:\t" + win_file.getName());
-		
 		if(win_file != null && win_file.exists() 
 				&& win_file.getName().charAt(0) != '.'
-				&& win_file.getName().contains("chr" + chr)) {
+				&& win_file.getName().contains("chr" + chr)
+				&& win_file.getName().contains("_s")
+				&& win_file.getName().contains("-e")) {
+			
+			System.out.println("Combining Window:\t" + win_file.getName());
 			
 			int st_pos = getStart(win_file.getName());
 			int end_pos = getEnd(win_file.getName());
@@ -248,11 +252,6 @@ public class Combiner {
 			WindowStats ws = wp.parseWindow(filter_incomplete_data);//TODO: make this so that ONLY data where all numbers are present are added
 			all_ws.add(ws);
 		}
-//		else {
-//			
-//			String msg = "Error: File " + win_file.getAbsolutePath() + " has incorrect name format";
-//			throw new FileParsingException(log, msg);
-//		}
 	}
 	
 	private int getEnd(String name) {

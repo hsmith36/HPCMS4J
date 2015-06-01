@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.util.HashMap;
 import java.util.List;
 
 import errors.IllegalInputException;
@@ -37,7 +38,7 @@ public class SetupDriver {
 	//directories and files for accessing and writing data
 	private File data_dir;
 	private File map_dir;
-	private File out_dir;
+	private File wrk_dir;
 	
 	//target population variables (tp)
 	private List<Window> tp_wins;
@@ -68,11 +69,11 @@ public class SetupDriver {
 	//progress log
 	private Log log;
 
-	public SetupDriver(String[] args, Log log) throws Exception {
+	public SetupDriver(HashMap<String, Object> arg_map, Log log) throws Exception {
 		
 		this.log = log;
 		
-		setArgs(args);
+		setArgs(arg_map);
 	}
 	
 	public void runSetup() throws Exception {
@@ -83,7 +84,6 @@ public class SetupDriver {
 			intersectPopulations();
 			createEnviFiles(i);
 		}
-		
 	}
 	
 	private void createEnviFiles(int chr) throws Exception {
@@ -92,7 +92,6 @@ public class SetupDriver {
 		
 		writeEnviVariables();
 		writeWindows(chr);
-		
 	}
 	
 	private void writeWindows(int chr) throws IllegalInputException {
@@ -100,7 +99,7 @@ public class SetupDriver {
 		//create unique window directory
 		try {
 		
-			String all_wins_path = out_dir.getAbsolutePath() + File.separator + "all_wins" + File.separator;
+			String all_wins_path = wrk_dir.getAbsolutePath() + File.separator + "all_wins" + File.separator;
 			File all_wins = new File(all_wins_path);
 			all_wins.mkdirs();
 			
@@ -135,7 +134,7 @@ public class SetupDriver {
 	private void writeEnviVariables() throws IllegalInputException {
 		
 		try {
-			File var_dir = new File(out_dir.getAbsolutePath() + File.separator + "envi_var");
+			File var_dir = new File(wrk_dir.getAbsolutePath() + File.separator + "envi_var");
 			var_dir.mkdirs();
 			
 			if(var_dir.isDirectory()) {
@@ -230,54 +229,6 @@ public class SetupDriver {
 			xp_ino_indv = xp_indv;
 			op_inx_indv = op_indv;
 		}
-		
-//		//TESTING INTERSECTION
-//		File f1 = new File("txin_wins.insect");
-//		File f2 = new File("tp_inx_indv.insect");
-//		File f3 = new File("xp_int_indv.insect");
-//		File f4 = new File("xoin_wins.insect");
-//		File f5 = new File("xp_ino_indv.insect");
-//		File f6 = new File("op_inx_indv.insect");
-//		
-//		try {
-//			PrintWriter pw = new PrintWriter(f1);
-//			pw.write("Windows:\n" + txin_wins.toString());
-//			pw.close();
-//			
-//			pw = new PrintWriter(f2);
-//			pw.write("Individuals:\n" + tp_inx_indv.toString());
-//			for(int i = 0; i < tp_inx_indv.length; i++)
-//				pw.write(tp_inx_indv[i] + "\n");
-//			pw.close();
-//			
-//			pw = new PrintWriter(f3);
-//			pw.write("Individuals:\n" + xp_int_indv.toString());
-//			for(int i = 0; i < xp_int_indv.length; i++)
-//				pw.write(xp_int_indv[i] + "\n");
-//			pw.close();
-//			
-//			pw = new PrintWriter(f4);
-//			pw.write("Windows:\n" + xoin_wins.toString());
-//			pw.close();
-//			
-//			pw = new PrintWriter(f5);
-//			pw.write("Individuals:\n" + xp_ino_indv.toString());
-//			for(int i = 0; i < xp_ino_indv.length; i++)
-//				pw.write(xp_ino_indv[i] + "\n");
-//			pw.close();
-//			
-//			pw = new PrintWriter(f6);
-//			pw.write("Individuals:\n" + op_inx_indv.toString());
-//			for(int i = 0; i < op_inx_indv.length; i++)
-//				pw.write(op_inx_indv[i] + "\n");
-//			pw.close();
-//			
-//			
-//		} catch (FileNotFoundException e) {
-//			
-//			e.printStackTrace();
-//		}
-//		//TESTING INTERSECTION
 	}
 	
 	private void parseFiles(int chr) throws Exception {
@@ -437,152 +388,68 @@ public class SetupDriver {
 		return false;
 	}
 	
-	private void setArgs(String[] args) throws IllegalInputException, IOException {
-		
-		log.add("\nParameter Check");
-		
-		data_dir = new File(args[0]);
-		if(!data_dir.isDirectory()) {
-			String msg = "Error: Data directory path does not exist";
-			throw new IllegalInputException(log, msg);
-		}
-		log.add(".");
-		
-		map_dir = new File(args[1]);
-		if(!map_dir.isDirectory()) {
-			String msg = "Error: Map file path does not exist";
-			throw new IllegalInputException(log, msg);
-		}
-		log.add(".");
-		
-		File temp_out_dir = new File(args[2] + File.separator + "out" + File.separator);
-		int n = 1;
-		while(temp_out_dir.exists()) {
-			temp_out_dir = new File(args[2] + File.separator + "out" + n + File.separator);
-			n++;
-		}
-		temp_out_dir.mkdir();
-		out_dir = new File(temp_out_dir.getAbsolutePath() + File.separator + "envi_files" + File.separator);
-		out_dir.mkdirs();
-		log.add(".");
-		
-		t_pop = args[3];
-		if(!t_pop.equals("CEU") && !t_pop.equals("YRI") 
-				&& !t_pop.equals("JPT") && !t_pop.equals("CHB")) {
-			String msg = "Error: Target population declaration not recognized";
-			throw new IllegalInputException(log, msg);
-		}
-		log.add(".");
-		
-		x_pop = args[4];
-		if(!x_pop.equals("CEU") && !x_pop.equals("YRI") 
-				&& !x_pop.equals("JPT") && !x_pop.equals("CHB")) {
-			String msg = "Error: Cross population declaration not recognized";
-			throw new IllegalInputException(log, msg);
-		}
-		if(x_pop.equals(t_pop)) {
-			String msg = "Error: Cross population declaration cannont be " 
-					+ "the same as target population declaration";
-			throw new IllegalInputException(log, msg);
-		}
-		log.add(".");
-		
-		o_pop = args[5];
-		if(!o_pop.equals("CEU") && !o_pop.equals("YRI") 
-				&& !o_pop.equals("JPT") && !o_pop.equals("CHB")) {
-			String msg = "Error: Out-group population declaration not recognized";
-			throw new IllegalInputException(log, msg);
-		}
-		if(o_pop.equals(t_pop)) {
-			String msg = "Error: Out-group population declaration cannont be " 
-					+ "the same as target population declaration";
-			throw new IllegalInputException(log, msg);
-		}
-		log.add(".");
-		
-		chr_st = getChrSt(args[6]);
-		log.add(".");
-		
-		chr_end = getChrEnd(args[6]);
-		log.add(".");
-		
-		win_size = getWindowSize(args[7]);
-		
-		log.addLine(" complete");
-		System.out.println("Paramater Check Complete!");
-		System.out.println("I'm praying your analysis works too...");
-	}
-	
-	private int getWindowSize(String in) throws IllegalInputException {
-		
-		int in_size = -1;
-		
-		try {
-			double win_size_in = Double.parseDouble(in) * MEGABASE_CONVERSION;
-			
-			in_size = (int) win_size_in;
-			
-		} catch (NumberFormatException e) {
-			String msg = "Error: Window size invalid format";
-			throw new IllegalInputException(log, msg);
-		}
-		
-		if(in_size <= 0 || in_size > (100 * MEGABASE_CONVERSION)) {
-			String msg = "Error: Window size declaration invalid";
-			throw new IllegalInputException(log, msg);
-		}
-		
-		return in_size;
-	}
-	
-	private int getChrSt(String chr_range) throws IllegalInputException {
-		
-		String[] st_end = chr_range.split("-");
-		
-		if(st_end.length != 2) {
-			String msg = "Error: Chromosome declaration " + chr_range + " is an invalid format";
-			throw new IllegalInputException(log, msg);
-		}
-		
-		int st = -1;
-		try {
-			st = Integer.parseInt(st_end[0]);
-		} catch (NumberFormatException e) {
-			String msg = "Error: Chromosome number format is incorrect";
-			throw new IllegalInputException(log, msg);
-		}
-		
-		if(st < 1 || st > 22) {
-			String msg = "Error: Start chromosome declaration " + st + " is out of bounds";
-			throw new IllegalInputException(log, msg);
-		}
-		
-		return st;
-	}
-	
-	private int getChrEnd(String chr_range) throws IllegalInputException {
-		
-		String[] st_end = chr_range.split("-");
-		
-		int end = -1;
-		try {
-			end = Integer.parseInt(st_end[1]);
-		} catch (NumberFormatException e) {
-			String msg = "Error: Chromosome number format is incorrect";
-			throw new IllegalInputException(log, msg);
-		}
-		
-		if(end < 1 || end > 22) {
-			String msg = "Error: End chromosome declaration out of bounds";
-			throw new IllegalInputException(log, msg);
-		}
-		
-		if(end < chr_st) {
-			String msg = "Error: End chromosome and start chromosome invalid order";
-			throw new IllegalInputException(log, msg);
-		}
-		
-		return end;
-		
-	}
+    private void setArgs(HashMap<String, Object> args) throws IllegalInputException, IOException {
+        
+        log.add("\nParameter Check");
+
+        data_dir = (File) args.get("data_dir");
+        log.add(".");
+
+        map_dir = (File) args.get("map_dir");
+        log.add(".");
+
+        File temp_wrk_dir = new File(args.get("working_dir") + File.separator + "SelecT_workspace" + File.separator);
+        int n = 1;
+        while(temp_wrk_dir.exists()) {
+                temp_wrk_dir = new File(args.get("working_dir") + File.separator + "SelecT_workspace" + n + File.separator);
+                n++;
+        }   
+        temp_wrk_dir.mkdir();
+        wrk_dir = new File(temp_wrk_dir.getAbsolutePath() + File.separator + "envi_files" + File.separator);
+        wrk_dir.mkdirs();
+        log.add(".");
+
+        t_pop = (String)args.get("target_pop");
+        log.add(".");
+
+        x_pop = (String)args.get("cross_pop");
+        log.add(".");
+
+        o_pop = (String)args.get("out_pop");
+        log.add(".");
+
+        chr_st = (Integer) args.get("start_chr");
+        log.add(".");
+
+        chr_end = (Integer) args.get("end_chr");
+        log.add(".");
+
+        win_size = getWindowSize( (Double) args.get("win_size") );
+
+        log.addLine(" complete!");
+        System.out.println("Paramater Check Complete!");
+        System.out.println("I'm praying your analysis works too...");
+    }   
+
+    private int getWindowSize(Double in) throws IllegalInputException {
+
+        int in_size = -1; 
+
+        try {
+                double win_size_in = in * MEGABASE_CONVERSION;
+
+                in_size = (int) win_size_in;
+
+        } catch (NumberFormatException e) {
+                String msg = "Error: Window size invalid format";
+                throw new IllegalInputException(log, msg);
+        }   
+
+        if (in_size <= 0 || in_size > (100 * MEGABASE_CONVERSION)) {
+                String msg = "Error: Window size declaration invalid";
+                throw new IllegalInputException(log, msg);
+        }   
+
+        return in_size;
+    } 
 }
