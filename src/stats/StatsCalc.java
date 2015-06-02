@@ -75,25 +75,27 @@ public class StatsCalc {
 		parser.addArgument("chr").type(Integer.class).choices(Arguments.range(1, 22))
 				.help("Chromosome number");
 		
-		parser.addArgument("win_num").type(Integer.class).choices(Arguments.range(1, 22))
-				.help("Window number for current analysis");
+		parser.addArgument("win_num").type(Integer.class).help("Window number for current analysis");
 		
 		//Creating optional arguments
-		parser.addArgument("--ihs_abs").action(Arguments.storeTrue())
-				.help("Runs iHS score probabilities where large positive AND negative "
-						+ "scores equate to greater selection. If not included, defaults to large "
-						+ "negative scores begin associated with selection");
+		parser.addArgument("-inon", "--nonabs_ihs").action(Arguments.storeFalse())	
+				.help("Runs iHS score probabilities where large negative scores ONLY being "
+						+ "associated with selection (same as CMS). If not included, "
+						+ "large positive AND negative iHS scores equate to greater selection");
 		
 		//na: deflt_prior = true | # of snps in window as prior; prior_prob doesn't matter
 		//--prior_prob: deflt_prior = false, prior_prob = 0.0001 | not dynamic, use prior of 1/10000, these are Broad's parameters
 		//--prior_prob X: deflt_prior = false, prior_prob = X | completely custom prior probability
-		parser.addArgument("--prior_prob").nargs("?").setConst(0.0001).setDefault(-1.0).type(Double.class)
+		parser.addArgument("-pp", "--prior_prob").nargs("?").setConst(0.0001).setDefault(-1.0)
+				.type(Double.class).choices(Arguments.range(0.000000000001, 0.99999))
 				.help("Sets the prior probability for bayesian score probability analysis. "
-						+ "If not included, defaults to 1/10000 or 0.0001");
+						+ "If not included, defaults to number of SNPs in window");
 		
 		parser.addArgument("-dc", "--daf_cutoff").type(Double.class).setDefault(0.2)
+				.choices(Arguments.range(0.0, 0.99999))
         		.help("Sets the Derived Allele Frequency cutoff for compose score calculation. "
-        				+ "If not included, defaults to a frequency of 0.2");
+        				+ "If not included, defaults to a frequency of 0.2."
+        				+ "Must be equal to or greater than zero and less than one");
 		
 		//Parsing user-inputed arguments
 		HashMap<String, Object> parsedArgs = new HashMap<String, Object>();
@@ -107,7 +109,7 @@ public class StatsCalc {
             Log err_log = new Log(Log.type.stat);
             err_log.addLine("Error: Failed to parse arguments"); 
             err_log.addLine("\t*" + e.getMessage());
-            err_log.addLine("\t*Go to api for more information");
+            err_log.addLine("\t*Go to api for more information or run with -h as first parameter for help");
 			err_log.addLine("\t*You will need to redo this entire step--all new data is invalid");
 			
 			System.exit(0);
@@ -131,20 +133,7 @@ public class StatsCalc {
 			
 			Log err_log = new Log(Log.type.stat);
 			err_log.addLine("Error: Could not find specific simulations for analysis");
-			err_log.addLine("\t*Go to api for more information");
-			err_log.addLine("\t*You will need to redo this entire step--all new data is invalid");
-			
-			System.exit(0);
-		}
-		
-		if((Double) parsedArgs.get("daf_cutoff") >= 1.0) {
-			
-			System.out.println("Fatal error in argument parsing: see log");
-			System.out.println("Illegal DAF cutoff value");
-			
-			Log err_log = new Log(Log.type.stat);
-			err_log.addLine("Error: DAF cutoff " + parsedArgs.get("daf_cutoff") + " is out of bounds");
-			err_log.addLine("\t*Go to api for more information");
+			err_log.addLine("\t*Go to api for more information or run with -h as first parameter for help");
 			err_log.addLine("\t*You will need to redo this entire step--all new data is invalid");
 			
 			System.exit(0);
@@ -578,7 +567,7 @@ public class StatsCalc {
 		sim_dir = (File) args.get("sim_dir");
 		
 		daf_cutoff = (Double) args.get("daf_cutoff");
-		ihs_abs = (Boolean) args.get("ihs_abs");
+		ihs_abs = (Boolean) args.get("nonabs_ihs");
 		
 		prior_prob = (Double) args.get("prior_prob");
 		if(prior_prob == -1.0) 

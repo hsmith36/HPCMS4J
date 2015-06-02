@@ -72,10 +72,10 @@ public class EnviSetup {
     	parser.addArgument("map_dir").type(Arguments.fileType().verifyIsDirectory()
                     .verifyCanRead()).help("Directory with map file");
 
-    	parser.addArgument("start_chr").type(Integer.class).choices(Arguments.range(1, 22) )
+    	parser.addArgument("start_chr").type(Integer.class).choices(Arguments.range(1, 22))
     				.help("Starting chromosome number");
 
-    	parser.addArgument("end_chr").type(Integer.class).choices(Arguments.range(1, 22) )
+    	parser.addArgument("end_chr").type(Integer.class).choices(Arguments.range(1, 22))
     				.help("Ending chromosome number. "
     						+ "Must be equal to or greater than starting chromosome number.");
 

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -17,7 +18,7 @@ public class Combiner {
 	
 	private int chr;
 	
-	private File out_dir;
+	private File wrk_dir;
 	private File stats_dir;
 	private String[] stat_str;
 	
@@ -26,14 +27,31 @@ public class Combiner {
 	private Log log;
 	
 	
-	public Combiner(File out_dir, int chr, Log log) throws IllegalInputException {
+//	public Combiner(File wrk_dir, int chr, Log log) throws IllegalInputException {
+//		
+//		this.chr = chr;
+//		this.log = log;
+//		
+//		this.wrk_dir = wrk_dir;
+//		
+//		stats_dir = new File(wrk_dir.getAbsolutePath() + File.separator + "stats_files");
+//		if(!stats_dir.isDirectory()) {
+//			String msg = "Error: Stat files directory path does not exist";
+//			throw new IllegalInputException(log, msg);
+//		}
+//		
+//		all_ws = new LinkedList<WindowStats>();
+//		stat_str = new String[0];
+//	}
+	
+	public Combiner(HashMap<String, Object> arg_map, Log log) throws IllegalInputException {
 		
-		this.chr = chr;
 		this.log = log;
 		
-		this.out_dir = out_dir;
+		chr = (Integer) arg_map.get("chr");
+		wrk_dir = (File) arg_map.get("wrk_dir");
 		
-		stats_dir = new File(out_dir.getAbsolutePath() + File.separator + "stats_files");
+		stats_dir = new File(wrk_dir.getAbsolutePath() + File.separator + "stats_files");
 		if(!stats_dir.isDirectory()) {
 			String msg = "Error: Stat files directory path does not exist";
 			throw new IllegalInputException(log, msg);
@@ -84,15 +102,15 @@ public class Combiner {
 		System.out.println("Writing combined windows");
 		
 		try {
-			out_dir = new File(out_dir.getAbsolutePath() + File.separator + "final_out");
-			if(!out_dir.exists())
-				out_dir.mkdir();
+			wrk_dir = new File(wrk_dir.getAbsolutePath() + File.separator + "final_out");
+			if(!wrk_dir.exists())
+				wrk_dir.mkdir();
 			
-			File out_file = new File(out_dir.getAbsoluteFile() + File.separator 
+			File out_file = new File(wrk_dir.getAbsoluteFile() + File.separator 
 					+ "combined_windows.tsv");
 			int num = 1;
 			while(out_file.exists()) {
-				out_file = new File(out_dir.getAbsoluteFile() + File.separator 
+				out_file = new File(wrk_dir.getAbsoluteFile() + File.separator 
 						+ "combined_windows" + num + ".tsv");
 				num++;
 			}
@@ -104,7 +122,7 @@ public class Combiner {
 				specificPrint(out_file);
 			
 		} catch(IOException e) {
-			String msg = "Error: There was a problem with printing to the output file in " + out_dir.getAbsolutePath();
+			String msg = "Error: There was a problem with printing to the output file in " + wrk_dir.getAbsolutePath();
 			throw new FileParsingException(log, msg);
 		}
 		
