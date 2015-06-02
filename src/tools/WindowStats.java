@@ -9,7 +9,7 @@ import java.util.TreeMap;
 
 import calc.HaplotypeTests;
 
-public class WindowStats {
+public class WindowStats implements Comparable<WindowStats>{
 	
 	private int st_pos;
 	private int end_pos;
@@ -599,4 +599,17 @@ public class WindowStats {
 		
 		return sb.toString();
 	}
+
+	@Override
+	public int compareTo(WindowStats ws) {
+		
+		if(this.getStPos() < ws.getStPos())
+			return -1;
+		if(this.getStPos() > ws.getStPos())
+			return 1;
+		
+		return 0;
+	}
+	
+	
 }

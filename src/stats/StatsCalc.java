@@ -160,10 +160,10 @@ public class StatsCalc {
 	private File sim_dir;
 	
 	//Analysis options
-	private boolean deflt_prior;//def = true
-	private boolean ihs_abs;//def = true
-	private double daf_cutoff;//def = .2
-	private double prior_prob;//def = 1 / (double) 10000
+	private boolean deflt_prior;
+	private boolean ihs_abs;
+	private double daf_cutoff;
+	private double prior_prob;
 	
 	//Evolution calculators
 	private iHS i;
@@ -175,38 +175,6 @@ public class StatsCalc {
 	//private NewStat new;
 	
 	private Log log;
-	
-//	/**
-//	 * Default constructor that uses default analysis options
-//	 * 
-//	 * @param wrk_dir
-//	 * @param sim_dir
-//	 * @param chr
-//	 * @param win_num
-//	 * @param log
-//	 */
-//	public StatsCalc(File wrk_dir, File sim_dir, int chr, int win_num, Log log) {
-//		
-//		tp_win = null;
-//		ws = null;
-//		
-//		this.chr = chr;
-//		this.win_num = win_num;
-//		this.wrk_dir = wrk_dir;
-//		this.sim_dir = sim_dir;
-//		this.log = log;
-//	}
-//	
-//	/**
-//	 * Calls main constructor but allows for options
-//	 * 
-//	 * @param options
-//	 */
-//	public StatsCalc(File wrk_dir, File sim_dir, int chr, int win_num, Object[] options, Log log) {
-//		
-//		this(wrk_dir, sim_dir, chr, win_num, log);
-//		
-//	}
 	
 	public StatsCalc(HashMap<String, Object> argMap, Log log) {
 		

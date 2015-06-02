@@ -26,24 +26,6 @@ public class Combiner {
 	
 	private Log log;
 	
-	
-//	public Combiner(File wrk_dir, int chr, Log log) throws IllegalInputException {
-//		
-//		this.chr = chr;
-//		this.log = log;
-//		
-//		this.wrk_dir = wrk_dir;
-//		
-//		stats_dir = new File(wrk_dir.getAbsolutePath() + File.separator + "stats_files");
-//		if(!stats_dir.isDirectory()) {
-//			String msg = "Error: Stat files directory path does not exist";
-//			throw new IllegalInputException(log, msg);
-//		}
-//		
-//		all_ws = new LinkedList<WindowStats>();
-//		stat_str = new String[0];
-//	}
-	
 	public Combiner(HashMap<String, Object> arg_map, Log log) throws IllegalInputException {
 		
 		this.log = log;
@@ -316,5 +298,4 @@ public class Combiner {
 		
 		return fin_str;
 	}
-
 }

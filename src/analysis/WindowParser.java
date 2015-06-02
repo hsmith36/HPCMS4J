@@ -250,6 +250,4 @@ public class WindowParser {
 		
 		return ws;
 	}
-
-
 }
