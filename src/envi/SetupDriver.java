@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -238,10 +239,10 @@ public class SetupDriver {
 		if(containsVCF(data_dir))
 			runVcfParcers(chr);
 		else
-			runLegendParcers(chr);
+			runHapsLegendParcers(chr);
 	}
 	
-	private void runLegendParcers(int chr) throws Exception {
+	private void runHapsLegendParcers(int chr) throws Exception {
 		
 		//========Find Path Variables========
 		String lg_tp_path = getPhasedPath(data_dir, LEGEND_TYPE, chr, t_pop);
@@ -264,7 +265,10 @@ public class SetupDriver {
 		PhasedParser xp_pp = new PhasedParser(lg_xp_path, ph_xp_path, log);
 		PhasedParser op_pp = new PhasedParser(lg_op_path, ph_op_path, log);
 		MapParser mp = new MapParser(map_path, log);
-		AncestralParser ap = new AncestralParser(anc_path, chr, log);
+		
+		AncestralParser ap = null;
+		if(!anc_path.equals(".:MISSING:."))
+			ap = new AncestralParser(anc_path, chr, log);
 		
 		//========Import Phased Data===========
 		tp_wins = tp_pp.parseLegend(win_size);
@@ -278,7 +282,10 @@ public class SetupDriver {
 		
 		//=======Import Environment Data========
 		gm = mp.parseGeneMap();
-		anc_types = ap.parseAncestralTypes();
+		if(!anc_path.equals(".:MISSING:."))
+			anc_types = ap.parseAncestralTypes();
+		else
+			anc_types = new ArrayList<Window>();
 	}
 	
 	private void runVcfParcers(int chr) throws Exception {
@@ -354,8 +361,9 @@ public class SetupDriver {
 				return dir.getAbsolutePath() + File.separator + file_name;
 		}
 		
-		String msg = "the issue is with your ancestral data";
-		throw new UnknownFileException(log, dir, msg);
+		return ".:MISSING:.";
+//		String msg = "the issue is with your ancestral data";
+//		throw new UnknownFileException(log, dir, msg);
 	}
 	
 	private String getMapPath(File dir, int chr) 

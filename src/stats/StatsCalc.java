@@ -67,7 +67,7 @@ public class StatsCalc {
 		
 		//Creating required arguments
 		parser.addArgument("wrk_dir").type(Arguments.fileType().verifyIsDirectory()
-                .verifyCanRead()).help("SelecT workspace directory");
+                .verifyCanRead()).help("SelecT workspace directory (created in phase 1)");
 		
 		parser.addArgument("sim_dir").type(Arguments.fileType().verifyIsDirectory()
                 .verifyCanRead()).help("Directory where simulations are saved");
@@ -79,22 +79,24 @@ public class StatsCalc {
 		
 		//Creating optional arguments
 		parser.addArgument("-inon", "--nonabs_ihs").action(Arguments.storeFalse())	
-				.help("Runs iHS score probabilities where large negative scores ONLY being "
-						+ "associated with selection (same as CMS). If not included, "
+				.help("Runs iHS score probabilities where large negative scores ONLY are "
+						+ "associated with selection (same as CMS_local). If not included, "
 						+ "large positive AND negative iHS scores equate to greater selection");
 		
 		//na: deflt_prior = true | # of snps in window as prior; prior_prob doesn't matter
 		//--prior_prob: deflt_prior = false, prior_prob = 0.0001 | not dynamic, use prior of 1/10000, these are Broad's parameters
 		//--prior_prob X: deflt_prior = false, prior_prob = X | completely custom prior probability
 		parser.addArgument("-pp", "--prior_prob").nargs("?").setConst(0.0001).setDefault(-1.0)
-				.type(Double.class).choices(Arguments.range(0.000000000001, 0.99999))
+				.type(Double.class).choices(Arguments.range(0.0, 1.0))
 				.help("Sets the prior probability for bayesian score probability analysis. "
+						+ "This value must be a float data-type; add a decimal point if not working. "
 						+ "If not included, defaults to number of SNPs in window");
 		
 		parser.addArgument("-dc", "--daf_cutoff").type(Double.class).setDefault(0.2)
 				.choices(Arguments.range(0.0, 0.99999))
         		.help("Sets the Derived Allele Frequency cutoff for compose score calculation. "
-        				+ "If not included, defaults to a frequency of 0.2."
+        				+ "This value must be a float data-type; add a decimal point if not working. "
+        				+ "If not included, defaults to a frequency of 0.2. "
         				+ "Must be equal to or greater than zero and less than one");
 		
 		//Parsing user-inputed arguments
@@ -205,7 +207,7 @@ public class StatsCalc {
 		
 		try {
 			
-			File win_stats_file = new File(wrk_dir.getAbsoluteFile() + File.separator 
+			File win_stats_file = new File(wrk_dir.getAbsolutePath() + File.separator 
 					+ "win" + win_num + "_" + "chr" + chr + "_s" 
 					+ tp_win.getStPos() + "-e" + tp_win.getEndPos() + ".tsv");
 			win_stats_file.createNewFile();
@@ -218,7 +220,8 @@ public class StatsCalc {
 			pw.close();
 			
 		} catch (IOException e) {
-			log.addLine(win_num + "\tWriteFileError\tCould not create/write the output file for this window");
+			e.printStackTrace();
+			log.addLine(win_num + "\tWriteFileError\tCould not create/write the output file for this window\t" + e.getMessage());
 			System.exit(0);
 		}
 	}
@@ -350,7 +353,8 @@ public class StatsCalc {
 			//new = (NewStat) new_thrd.getTest();
 		
 		} catch (InterruptedException e) { 
-			log.addLine(win_num + "\tThreadingError\tThreading for this process did not complete");
+			e.printStackTrace();
+			log.addLine(win_num + "\tThreadingError\tThreading for this process did not complete\t" + e.getMessage());
 			System.exit(0);
 		}
 	}
@@ -448,16 +452,20 @@ public class StatsCalc {
 			//new = new NewStat(args0, args1, ..., argsx);
 			
 		} catch (IOException e) {
-			log.addLine(win_num + "\tReadFileError\tCould not find the correct file for proper loading of envi; check chr num and api");
+			e.printStackTrace();
+			log.addLine(win_num + "\tReadFileError\tCould not find the correct file for proper loading of envi; check chr num and api\t" + e.getMessage());
 			System.exit(0);
 		} catch (ClassNotFoundException e) {
-			log.addLine(win_num + "\tClassNotFoundError\tCould create the correct object instance while loading of envi");
+			e.printStackTrace();
+			log.addLine(win_num + "\tClassNotFoundError\tCould create the correct object instance while loading of envi\t" + e.getMessage());
 			System.exit(0);
 		} catch (ClassCastException e) {
-			log.addLine(win_num + "\tCastingError\tObject casting invalid while loading envi");
+			e.printStackTrace();
+			log.addLine(win_num + "\tCastingError\tObject casting invalid while loading envi\t" + e.getMessage());
 			System.exit(0);
 		} catch (StatsCalcException e) {
-			log.addLine(win_num + "\t" + e.getErrorType());
+			e.printStackTrace();
+			log.addLine(win_num + "\t" + e.getErrorType() + "\t" + e.getMessage());
 			System.exit(0);
 		}
 	}
@@ -580,7 +588,8 @@ class StatsThread extends Thread {
 		try {
 			tst.runStat();
 		} catch (StatsCalcException e) {
-			log.addLine(win_num + "\t" + e.getErrorType());
+			e.printStackTrace();
+			log.addLine(win_num + "\t" + e.getErrorType() + "\t" + e.getMessage());
 			System.exit(0);
 		}	
 		

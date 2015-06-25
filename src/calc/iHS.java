@@ -200,34 +200,6 @@ public class iHS extends HaplotypeTests {
 		System.out.println("Pos =\t" + pos_sb.toString());
 	}
 	
-//	private void calcScoreProbabilities() throws StatsCalcException {
-//		
-//		List<Double> neut_probs = new ArrayList<Double>();
-//		List<Double> sel_probs = new ArrayList<Double>();
-//		
-//		double prior_prob = 1 / (double) all_std_iHS.size();
-//		
-//		for(int i = 0; i < all_std_iHS.size(); i++) {
-//			
-//			Double score = all_std_iHS.get(i);
-//			
-//			Double neut_prob = neut_sim.get2SidedProb(score);
-//			neut_probs.add(neut_prob);
-//			
-//			Double sel_prob = sel_sim.getIHS2SidedSelProb(score);
-//			sel_probs.add(sel_prob);
-//			
-//			double cms_nom = sel_prob * prior_prob;
-//			double cms_denom = ((sel_prob*prior_prob) + (neut_prob*(1-prior_prob)));
-//			Double score_prob = cms_nom / cms_denom;
-////			bayes_probs.add(score_prob);
-//			
-//			System.out.println(score + "\t" + neut_prob + "\t" + sel_prob + "\t" + score_prob);
-//		}
-//		
-////		bayes_probs = calcScoreProbabilities(all_std_iHS, neut_sim, sel_sim, true);
-//	}
-	
 	private void calcScoreProbabilities() throws StatsCalcException {
 		
 		if(ihs_abs) {

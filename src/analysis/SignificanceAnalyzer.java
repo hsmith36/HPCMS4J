@@ -36,17 +36,22 @@ public class SignificanceAnalyzer {
 			if((Boolean) arg_map.get("combine_only")) {
 				
 				Combiner c = new Combiner(arg_map, log);
-				if(arg_map.get("combine_filter").equals(".:default:."))
+				if(arg_map.get("combine_fltr").equals(".:default:."))
 					c.combineWindows();
 				else
-					c.combineWindows((String) arg_map.get("combine_filter"));
+					c.combineWindows((String) arg_map.get("combine_fltr"));
 				
 				c.writeStats();
 			}
 			else {
 				
 				Combiner c = new Combiner(arg_map, log);
-				c.combineAnalysisData();
+				
+				if((Boolean) arg_map.get("use_incomp"))
+					c.combineWindows();
+				else
+					c.combineAnalysisData();
+				
 				
 				if((Boolean) arg_map.get("write_combine"))
 					c.writeStats();
@@ -82,24 +87,25 @@ public class SignificanceAnalyzer {
 		
 		//Creating required arguments
 		parser.addArgument("wrk_dir").type(Arguments.fileType().verifyIsDirectory()
-                .verifyCanRead()).help("SelecT workspace directory");
+                .verifyCanRead()).help("SelecT workspace directory (created in phase 1)");
 		
 		parser.addArgument("chr").type(Integer.class).choices(Arguments.range(1, 22))
 				.help("Chromosome number");
 		
 		//Creating optional arguments
 		parser.addArgument("-co", "--combine_only").action(Arguments.storeTrue())
-				.help("When present this flag only runs fist half of analysis where "
+				.help("When present this flag only runs first half of analysis where "
 						+ "windows are combined into one file");
 		
-		parser.addArgument("-cf", "--combine_filter").type(String.class).setDefault(".:default:.")
-				.help("Uses a specific filter for specific combination of stats in output file "
+		parser.addArgument("-cf", "--combine_fltr").type(String.class).setDefault(".:default:.")
+				.help("Uses a specific filter for printing specific combination of stats in output file "
 						+ "and can only be used in conjunction with the --combine_only flag. "
 						+ "See api for definition of filter string");
 		
 		parser.addArgument("-p", "--p_value").type(Double.class).setDefault(0.01)
-				.choices(Arguments.range(0.000000000000000000001, 0.99999999999999999))
+				.choices(Arguments.range(0.0, 1.0))
 				.help("Sets the p-value cutoff for significance check on composite scores. "
+						+ "This value must be a float data-type; add a decimal point if not working. "
 						+ "If not included, defaults to 0.01");
 		
 		parser.addArgument("-wc", "--write_combine").action(Arguments.storeTrue())
@@ -109,6 +115,9 @@ public class SignificanceAnalyzer {
 		parser.addArgument("-rn", "--run_norm").action(Arguments.storeTrue())
 				.help("Normalizes MoP and PoP probabilities across whole dataset instead of "
 						+ "one window before finding significance");
+		
+		parser.addArgument("-ui", "--use_incomp").action(Arguments.storeTrue())
+				.help("Use incomplete data when analyzing MoP scores");
 		
 		parser.addArgument("-im", "--ignore_mop").action(Arguments.storeTrue())
 				.help("Ignores all MoP scores and finds significance based upon PoP only; "

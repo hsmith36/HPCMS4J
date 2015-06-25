@@ -81,21 +81,21 @@ public class EnviSetup {
 
     	parser.addArgument("target_pop").choices("ACB", "ASW", "BEB", "CDX", "CEU","CHB", "CHS", "CLM",
                     "ESN", "ESN", "FIN", "GBR", "GIH","GWD", "IBS", "ITU", "JPT", "KHV", "LWK", "MSL",
-                    "MXL", "PEL", "PJL", "PUR", "STU", "TSI", "YRI").help("Target population");
+                    "MXL", "PEL", "PJL", "PUR", "STU", "TSI", "TST", "YRI").help("Target population");
 
     	parser.addArgument("cross_pop").choices("ACB", "ASW", "BEB", "CDX", "CEU","CHB", "CHS", "CLM",
                     "ESN", "ESN", "FIN", "GBR", "GIH","GWD", "IBS", "ITU", "JPT", "KHV", "LWK", "MSL",
-                    "MXL", "PEL", "PJL", "PUR", "STU", "TSI", "YRI").help("Cross population.");
+                    "MXL", "PEL", "PJL", "PUR", "STU", "TSI", "TST", "YRI").help("Cross population.");
 
     	//Creating optional arguments
     	parser.addArgument("-op", "--out_pop").choices("ACB", "ASW", "BEB", "CDX", "CEU","CHB", "CHS",
                     "CLM", "ESN", "ESN", "FIN", "GBR", "GIH","GWD", "IBS", "ITU", "JPT", "KHV", "LWK", "MSL",
-                    "MXL", "PEL", "PJL", "PUR", "STU", "TSI", "YRI").help("Outgroup population. If not "
+                    "MXL", "PEL", "PJL", "PUR", "STU", "TSI", "TST", "YRI").help("Outgroup population. If not "
                     + "included, defaults to equal cross population");
 
     	parser.addArgument("-wd", "--working_dir").type(Arguments.fileType().verifyIsDirectory()
                     .verifyCanRead()).setDefault(System.getProperty("user.dir"))
-                    .help("Directory for where to put SelecT working directory. "
+                    .help("Defines the directory where SelecT will create a new working directory. "
                     		+ "If not set, defaults to the current working directory");
 
 
